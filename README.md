@@ -1,0 +1,5 @@
+基于SpringBoot+Vue的社区养老助餐服务管理系统的设计与实现
+这是一个springboot+vue的前后端分离的项目 
+server_code为服务端
+client_code为前端
+manage_code为后台管理端
