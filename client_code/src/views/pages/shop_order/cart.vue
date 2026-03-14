@@ -1,402 +1,194 @@
 <template>
-	<div class="list-page" :style='{"padding":"30px calc(50% - 600px)","fontSize":"16px","position":"relative","background":"rgba(247, 247, 247, 1)"}'>
-        <div class="breadcrumb-wrapper" style="width: 100%;">
-            <div class="back_view">
-                <el-button class="back_btn" @click="backClick" type="primary">返回</el-button>
-            </div>
+	<div class="list-page modern-cart-page">
+        <div class="breadcrumb-wrapper">
+            <el-button class="back_btn" @click="backClick" round icon="el-icon-back">返回菜品大厅</el-button>
+            <div class="section_title">{{formName}}</div>
         </div>
-		<div class="section_title">
-            <span>{{formName}}</span>
-		</div>
-		<br>
-		<el-table :data="list" v-loading="listLoading" border @selection-change="handleSelectionChange" ref="table" :stripe='true'
-			@row-click="listChange">
-			<el-table-column type="selection" width="55" :resizable='true' align="left" header-align="left" />
-			<el-table-column label="商品名称" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.goodname}}
-				</template>
-			</el-table-column>
-			<el-table-column label="商品图片" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<img :src="scope.row.picture?($config.url + scope.row.picture):''" alt=""
-						style="width: 150px;height: 150px;">
-				</template>
-			</el-table-column>
-			<el-table-column label="价格" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<span style="font-size: 12px;">￥</span>{{scope.row.realPrice}}
-				</template>
-			</el-table-column>
-			<el-table-column label="数量" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<el-input-number v-model="scope.row.buynumber" :min="1"
-						@change="numberChange(scope.row)" @click.stop></el-input-number>
-				</template>
-			</el-table-column>
-			<el-table-column label="总价" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<span style="font-size: 12px;">￥</span>{{(scope.row.realPrice * scope.row.buynumber).toFixed(2)}}
-				</template>
-			</el-table-column>
-			<el-table-column label="操作" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<el-button class="view_btn" type="primary" @click.native="detailClick(scope.row)">查看详情</el-button>
-					<el-button class="del_btn" type="danger" @click.native="delClick(scope.row.id)">删除</el-button>
-				</template>
-			</el-table-column>
-		</el-table>
-		<br>
-		<div class="cart_confirm">
-			<div class="cart_price">
-				总价：<span style="font-size: 12px;">￥</span>{{allPrice()}}
-			</div>
-			<el-button class="confirm_btn" @click="payClick" type="success">提交订单</el-button>
-		</div>
+        
+        <el-card class="cart-card" shadow="hover">
+            <div class="cart-header">
+                <el-checkbox v-model="allSelected" @change="handleAllSelect" style="margin-left:15px; font-weight: bold;">全选菜品</el-checkbox>
+                <el-button type="danger" plain round size="small" :disabled="!multipleSelection.length" @click="delClick(null)" icon="el-icon-delete">
+                    批量删除选中
+                </el-button>
+            </div>
+
+            <el-divider></el-divider>
+
+            <div class="cart-items" v-loading="listLoading">
+                <el-empty v-if="!list || list.length === 0" description="您的购物车空空如也，快去挑点好吃的吧！"></el-empty>
+                
+                <div class="cart-item" v-for="(item, index) in list" :key="item.id">
+                    <div class="item-checkbox">
+                        <el-checkbox v-model="item.selected" @change="handleItemSelect(item)"></el-checkbox>
+                    </div>
+                    
+                    <div class="item-img-wrapper" @click="listChange(item)">
+                        <img :src="item.picture?($config.url + item.picture):''" class="item-img" />
+                    </div>
+                    
+                    <div class="item-info">
+                        <div class="item-name" @click="listChange(item)">{{item.goodname}}</div>
+                        <div class="item-price">¥ {{item.price}}</div>
+                    </div>
+                    
+                    <div class="item-actions">
+                        <el-input-number class="item-stepper" v-model="item.buynumber" :min="1" :max="99" size="small" @change="(val) => updateCart(item, val)"></el-input-number>
+                        <el-button type="danger" link class="delete-btn" @click="delClick(item.id)">
+                            <i class="el-icon-delete"></i>
+                        </el-button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="footer-left">
+                    已选 <span class="highlight-text">{{multipleSelection.length}}</span> 份餐品
+                </div>
+                <div class="footer-right">
+                    <div class="total-price">
+                        合计: <span class="price-num">¥ {{totalPrice.toFixed(2)}}</span>
+                    </div>
+                    <el-button type="primary" class="checkout-btn" round :disabled="!multipleSelection.length" @click="payClick">
+                        立即结算
+                    </el-button>
+                </div>
+            </div>
+		</el-card>
 	</div>
 </template>
 
 <script setup>
-	import {
-		ref,
-		getCurrentInstance,
-		nextTick,
-        computed,
-	} from 'vue';
-	import {
-		ElMessageBox
-	} from 'element-plus'
-	import {
-		useRoute,
-		useRouter
-	} from 'vue-router';
-    import {
-        useStore
-    } from 'vuex';
-    const store = useStore()
-    const user = computed(()=>store.getters['user/session'])
+	import { ref, getCurrentInstance, nextTick, computed } from 'vue';
+	import { useRoute, useRouter } from 'vue-router';
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	const router = useRouter()
 	const route = useRoute()
-	//基础信息
 	const tableName = 'cart'
-	const formName = '购物车'
-	const table = ref(null)
-	const selRows = ref([])
+	const formName = '我的购物车'
 	const list = ref([])
 	const listLoading = ref(false)
-	const listQuery = ref({
-		page: 1,
-		limit: 20,
-		userid: context?.$toolUtil.storageGet('userid')
-	})
-	//基础信息
-    //判断是否从个人中心跳转
-    const centerType = ref(false)
-    //返回
-    const backClick = () => {
-        if(centerType.value){
-            history.back()
-        }else{
-            router.push(`/index/${context?.$toolUtil.storageGet('frontSessionTable')}Center`)
-        }
-    }
+	const multipleSelection = ref([])
+    const allSelected = ref(false)
 
-    //获取列表
+	const totalPrice = computed(() => {
+		let total = 0;
+		multipleSelection.value.forEach(item => {
+			total += item.price * item.buynumber;
+		});
+		return total;
+	});
+
+	const backClick = () => { router.push(`/index/caipinxinxiList`) }
+
 	const getList = () => {
 		listLoading.value = true
 		context?.$http({
-			url: 'cart/list',
+			url: `${tableName}/page`,
 			method: 'get',
-			params: listQuery.value
+			params: { page: 1, limit: 100 }
 		}).then(res => {
 			listLoading.value = false
-			list.value = res.data.data.list
-            list.value.forEach(item=>{
-                item.realPrice = item.price
-            })
+            let dataList = res.data.data.list;
+            dataList.forEach(item => item.selected = false);
+			list.value = dataList;
+            updateSelection();
 		})
 	}
-	//跳转商品详情
-	const detailClick = (row) => {
-		router.push(`/index/${row.tablename}Detail?id=${row.goodid}`)
-	}
-	//多选
-	const handleSelectionChange = (e) => {
-		selRows.value = e
-	}
-	//单击选中某行
-	const listChange = (row) =>{
-		nextTick(()=>{
-			table.value.clearSelection()
-			table.value.toggleRowSelection(row)
-		})
-	}
-	//移除购物车
-	const delClick = (id = null) => {
-		if (id) {
-			ElMessageBox.confirm(`是否删除选中${formName}`, '提示', {
-				confirmButtonText: '是',
-				cancelButtonText: '否',
-				type: 'warning',
-			}).then(() => {
-				context?.$http({
-					url: 'cart/delete',
-					method: 'post',
-					data: [id]
-				}).then(res => {
-					context?.$toolUtil.message('删除成功', 'success', () => {
-						getList()
-					})
-				})
-			}).catch(_ => {})
-		}
-	}
-	const numberChange = (row) => {
+    
+    const handleAllSelect = (val) => {
+        list.value.forEach(item => item.selected = val);
+        updateSelection();
+    }
+    
+    const handleItemSelect = () => {
+        allSelected.value = list.value.every(item => item.selected);
+        updateSelection();
+    }
+    
+    const updateSelection = () => {
+        multipleSelection.value = list.value.filter(item => item.selected);
+    }
+
+	const updateCart = (row, val) => {
 		context?.$http({
-			url: `${row.tablename}/detail/${row.goodid}`,
-			method: 'get'
+			url: `cart/update`,
+			method: 'post',
+			data: row
 		}).then(res => {
-			if (res.data.data.onelimittimes&&(res.data.data.onelimittimes>0)&&(row.buynumber > res.data.data.onelimittimes)) {
-				row.buynumber = res.data.data.onelimittimes
-				context?.$toolUtil.message(`每人单次只能购买${res.data.data.onelimittimes}件`, 'error')
-				return false
-			}
-			context?.$http({
-				url: `cart/update`,
-				method: 'post',
-				data: row
-			}).then(obj => {})
+			context?.$message.success('已更新数量')
 		})
 	}
-	//统计总价
-	const allPrice = () => {
-		let price = 0
-		for (let x in selRows.value) {
-			price += Number((selRows.value[x].realPrice * selRows.value[x].buynumber))
-		}
-		return Number(price).toFixed(2)
+
+	const delClick = (id) => {
+		let ids = id ? [id] : multipleSelection.value.map(item => item.id)
+        if(!ids.length) return;
+        
+		context?.$confirm('确定要从购物车移除这些菜品吗?', '确认提示', {
+			confirmButtonText: '确定',
+			cancelButtonText: '取消',
+			type: 'warning'
+		}).then(()=>{
+			context?.$http({
+				url: `cart/delete`,
+				method: 'post',
+				data: ids
+			}).then(res=>{
+				context?.$message.success('删除成功')
+                multipleSelection.value = []
+                allSelected.value = false
+				getList()
+			})
+		})
 	}
-	const payClick = async () => {
-		if (selRows.value.length){
-			let data = []
-			for(let x in selRows.value){
-                let res = await context?.$http({
-					url: `${selRows.value[x].tablename}/detail/${selRows.value[x].goodid}`,
-					method:'get'
-				})
-                if(selRows.value[x].buynumber>res.data.data.alllimittimes){
-                    context?.$toolUtil.message(`${selRows.value[x].goodname}库存不足`,'error')
-                    return false
-                }
-                if(x==selRows.value.length - 1){
-                    confirmOrder()
-                }
-			}
-		}else{
-			context?.$toolUtil.message('请选择需要购买的商品','error')
-		}
+    
+	const listChange = (row) => {
+		router.push(`caipinxinxiDetail?id=` + row.goodid)
 	}
-	const confirmOrder = () => {
-		context?.$toolUtil.storageSet('orders_good',JSON.stringify(selRows.value))
+    
+	const payClick = () => {
+		let data = multipleSelection.value
+		if (!data.length) {
+			context?.$message.error('请先选择要结算的菜品')
+			return
+		}
+		context?.$toolUtil.storageSet('orders_good', JSON.stringify(data))
+		context?.$toolUtil.storageSet('orders_type', 'cart')
 		router.push('/index/order_confirm')
 	}
-	//初始化
-	const init = () => {
-        if(route.query.centerType){
-            centerType.value = true
-        }
-		getList()
-	}
+
+	const init = () => { getList() }
 	init()
 </script>
 
 <style lang="scss" scoped>
-    .section_title{
-        text-align: center;
-        span{
-        border: 2px solid rgba(66, 66, 66, 1);
-        padding: 10px 40px;
-        margin: 0px 0px 20px;
-        color: var(--theme);
-        display: inline-block;
-        font-size: 24px;
-        text-align: center;
-        }
-    }
-	// 表格样式
-	.el-table {
-		padding: 0;
-		margin: 20px 0 0;
-		background: #fff;
-		width: 100%;
-		font-size: 15px;
-		border-color: #eee;
-		border-width: 1px 0 0 1px;
-		border-style: solid;
-		:deep(.el-table__header-wrapper) {
-			thead {
-				color: #333;
-				font-weight: 500;
-				width: 100%;
-				tr {
-					background: rgba(243, 243, 243, 1);
-					th {
-						padding: 8px 0;
-						background: rgba(243, 243, 243, 1);
-						border-color: rgba(216, 216, 216, 1);
-						border-width: 0 1px 1px 0;
-						border-style: solid;
-						text-align: left;
-						.cell {
-							padding: 0 10px;
-							word-wrap: normal;
-							color: rgba(158, 158, 158, 1);
-							white-space: nowrap;
-							font-weight: bold;
-							display: flex;
-							vertical-align: middle;
-							line-height: 24px;
-							text-overflow: ellipsis;
-							word-break: break-all;
-							width: 100%;
-							align-items: center;
-							position: relative;
-							min-width: 110px;
-							//未选中样式
-							.el-checkbox {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-							//选中样式
-							.is-checked {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		:deep(.el-table__body-wrapper) {
-			tbody {
-				width: 100%;
-				tr {
-					background: #fff;
-					td {
-						padding: 12px 0;
-						color: #666;
-						background: #fff;
-						border-color: #eee;
-						border-width: 0 1px 1px 0;
-						border-style: solid;
-						text-align: left;
-						.cell {
-							padding: 0 10px;
-							overflow: hidden;
-							word-break: break-all;
-							white-space: normal;
-							line-height: 24px;
-							text-overflow: ellipsis;
-							// 查看详情
-							.view_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 10px 0 0;
-								outline: none;
-								color: #fff;
-								background: var(--theme);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 查看详情-悬浮
-							.view_btn:hover {
-							}
-							// 删除
-							.del_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 10px 0 0;
-								outline: none;
-								color: #fff;
-								background: rgba(199, 199, 199, 1);
-								width: auto;
-								font-size: 14px;
-								min-width: 60px;
-								height: 32px;
-							}
-							// 删除-悬浮
-							.del_btn:hover {
-							}
-							//未选中样式
-							.el-checkbox {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-							//选中样式
-							.is-checked {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-						}
-					}
-				}
-				tr.el-table__row--striped {
-					td {
-						background: #FAFAFA !important;
-					}
-				}
-				tr:hover {
-					td {
-						padding: 12px 0;
-						background: rgba(245, 245, 245, 1);
-						border-color: #eee;
-						border-width: 0 1px 0px 0;
-						border-style: solid;
-						text-align: left;
-					}
-				}
-			}
-		}
-	}
-	.cart_confirm {
-		padding: 20px;
-		margin: 10px 0;
-		background: #fff;
-		display: flex;
-		width: 100%;
-		justify-content: flex-end;
-		align-items: center;
-		box-sizing: border-box;
-
-		.cart_price {
-		margin: 0 20px 0 0;
-		color: #f00;
-		font-weight: bold;
-		}
-		.confirm_btn {
-		border: 0;
-		cursor: pointer;
-		border-radius: 4px;
-		padding: 0 24px;
-		margin: 0 10px 0 0;
-		outline: none;
-		color: #fff;
-		background: var(--theme);
-		width: auto;
-		font-size: 14px;
-		height: 40px;
-		}
-		.confirm_btn:hover {
-		}
-	}
+.modern-cart-page { width: 1100px; margin: 0 auto; padding: 30px 0; }
+.breadcrumb-wrapper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+.section_title { font-size: 24px; font-weight: bold; color: #333; letter-spacing: 2px; }
+.cart-card { border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); :deep(.el-card__body) { padding: 0; } }
+.cart-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: #fbfbfc; border-radius: 16px 16px 0 0; }
+:deep(.el-divider--horizontal) { margin: 0; }
+.cart-items { padding: 10px 30px; min-height: 300px; }
+.cart-item { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px dashed #ebeef5; transition: all 0.3s; }
+.cart-item:last-child { border-bottom: none; }
+.cart-item:hover { background: #fcfdfe; }
+.item-checkbox { width: 50px; display: flex; justify-content: center; }
+.item-img-wrapper { width: 110px; height: 110px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-right: 25px; }
+.item-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.item-img-wrapper:hover .item-img { transform: scale(1.05); }
+.item-info { flex: 1; display: flex; flex-direction: column; justify-content: space-around; height: 90px; }
+.item-name { font-size: 18px; font-weight: bold; color: #333; cursor: pointer; transition: color 0.3s; }
+.item-name:hover { color: #4A90E2; }
+.item-price { font-size: 22px; color: #F56C6C; font-weight: bold; }
+.item-actions { display: flex; align-items: center; gap: 30px; }
+:deep(.el-input-number) { width: 120px; }
+.delete-btn { font-size: 18px; color: #c0c4cc; }
+.delete-btn:hover { color: #F56C6C; }
+.cart-footer { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: #fafafa; border-top: 1px solid #ebeef5; border-radius: 0 0 16px 16px; }
+.footer-left { font-size: 15px; color: #606266; }
+.highlight-text { color: #4A90E2; font-weight: bold; font-size: 18px; margin: 0 5px; }
+.footer-right { display: flex; align-items: center; gap: 25px; }
+.total-price { font-size: 16px; color: #333; font-weight: bold; }
+.price-num { color: #F56C6C; font-size: 26px; margin-left: 10px; }
+.checkout-btn { padding: 12px 35px; font-size: 18px; letter-spacing: 2px; box-shadow: 0 6px 16px rgba(74, 144, 226, 0.3); }
 </style>

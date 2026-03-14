@@ -1,197 +1,166 @@
 <template>
-	<div class="list-page" :style='{"padding":"30px calc(50% - 600px)","fontSize":"16px","position":"relative","background":"rgba(247, 247, 247, 1)"}'>
-        <div class="breadcrumb-wrapper" style="width: 100%;">
-            <div class="back_view">
-                <el-button class="back_btn" @click="backClick" type="primary">返回</el-button>
+	<div class="list-page modern-order-page">
+        <el-card shadow="hover" class="breadcrumb-card">
+            <div class="breadcrumb-wrapper">
+                <el-breadcrumb separator="/" class="breadcrumb">
+                    <el-breadcrumb-item :to="{ path: `/index/${sessionTable}Center` }">个人中心</el-breadcrumb-item>
+                    <el-breadcrumb-item>{{formName}}</el-breadcrumb-item>
+                </el-breadcrumb>
+                <div class="back_view">
+                    <el-button class="back_btn" @click="backClick" icon="el-icon-back" round size="small">返回</el-button>
+                </div>
             </div>
-        </div>
-		<div class="section_title">
-            <span>{{formName}}</span>
+        </el-card>
+
+        <div class="status-tabs-wrapper">
+            <el-radio-group v-model="orderStatus" @change="statusChange" size="large" class="modern-tabs">
+                <el-radio-button label="">全部订单</el-radio-button>
+                <el-radio-button v-if="btnAuth('orders/未支付','查看')" label="未支付">未支付</el-radio-button>
+                <el-radio-button label="已支付">待发货</el-radio-button>
+                <el-radio-button label="已发货">已发货</el-radio-button>
+                <el-radio-button label="已完成">已完成</el-radio-button>
+                <el-radio-button label="已退款">已退款</el-radio-button>
+                <el-radio-button label="已取消">已取消</el-radio-button>
+            </el-radio-group>
 		</div>
-		<el-tabs v-model="orderStatus" type="card" class="demo-tabs" @tab-change="statusChange" style="width: 100%;">
-			<el-tab-pane label="全部" :name="''"></el-tab-pane>
-			<el-tab-pane v-if="btnAuth('orders/未支付','查看')" label="未支付" name="未支付"></el-tab-pane>
-			<el-tab-pane label="已支付" name="已支付"></el-tab-pane>
-			<el-tab-pane label="已发货" name="已发货"></el-tab-pane>
-			<el-tab-pane label="已完成" name="已完成"></el-tab-pane>
-			<el-tab-pane label="已退款" name="已退款"></el-tab-pane>
-			<el-tab-pane label="已取消" name="已取消"></el-tab-pane>
-		</el-tabs>
-		<el-table v-loading="listLoading" border :stripe='true' @selection-change="handleSelectionChange" ref="table"
-			:data="list" @row-click="listChange">
-			<el-table-column type="selection" width="55" :resizable='true' align="left" header-align="left" />
-			<el-table-column label="序号" width="120" :resizable='true' align="left" header-align="left">
-				<template #default="scope">{{ scope.$index + 1}}</template>
-			</el-table-column>
-			<el-table-column label="订单编号" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.orderid}}
-				</template>
-			</el-table-column>
-			<el-table-column label="商品" width="200px" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<div style="display: flex;align-items: center;">
-						<div v-if="scope.row.picture">
-							<el-image v-if="scope.row.picture.substring(0,4)=='http'" preview-teleported
-								:preview-src-list="[scope.row.picture.split(',')[0]]"
-								:src="scope.row.picture.split(',')[0]" style="width:100px;height:100px"></el-image>
-							<el-image v-else preview-teleported
-								:preview-src-list="[$config.url+scope.row.picture.split(',')[0]]"
-								:src="$config.url+scope.row.picture.split(',')[0]" style="width:100px;height:100px">
-							</el-image>
-						</div>
-						<div v-else>无图片</div>
-						<span style="margin-left: 10px;">{{scope.row.goodname}}</span>
-					</div>
-				</template>
-			</el-table-column>
-			<el-table-column label="购买数量" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.buynumber}}
-				</template>
-			</el-table-column>
-			<el-table-column label="价格" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<span v-if="scope.row.type!=2" style="font-size: 12px;">￥</span>{{scope.row.price}} <span
-						v-if="scope.row.type==2">积分</span>
-				</template>
-			</el-table-column>
-			<el-table-column label="总价" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					<span v-if="scope.row.type!=2" style="font-size: 12px;">￥</span>{{scope.row.total}} <span
-						v-if="scope.row.type==2">积分</span>
-				</template>
-			</el-table-column>
-			<el-table-column label="地址" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.address}}
-				</template>
-			</el-table-column>
-			<el-table-column label="电话" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.tel}}
-				</template>
-			</el-table-column>
-			<el-table-column label="收货人" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.consignee}}
-				</template>
-			</el-table-column>
-			<el-table-column label="备注" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.remark}}
-				</template>
-			</el-table-column>
-			<el-table-column label="下单时间" :resizable='true' align="left" header-align="left">
-				<template #default="scope">
-					{{scope.row.addtime}}
-				</template>
-			</el-table-column>
-			<el-table-column label="操作" :resizable='true' align="left" header-align="left" width="200px">
-				<template #default="scope">
-					<el-button class="pay_btn" v-if="scope.row.status=='未支付'" type="primary" @click="payClick(scope.row)">
-						余额支付
-					</el-button>
-					<el-button class="cancel_btn" v-if="scope.row.status=='未支付'" type="danger" @click="cancelClick(scope.row)">
-						取消
-					</el-button>
-					<el-button class="refundPrice_btn" v-if="scope.row.status=='已支付'" type="danger" @click="refundPriceClick(scope.row)">
-						退款
-					</el-button>
-                    <template v-if="!scope.row.sfsh||scope.row.sfsh=='否'">
-                        <el-button class="refundGood_btn" v-if="scope.row.status=='已完成'&&scope.row.sfsh!='否'" type="danger" @click="refundGoodClick(scope.row)">
-                            退货
-                        </el-button>
-                        <el-button class="refundGood_btn" v-else-if="scope.row.sfsh=='否'" type="danger" @click="refundGoodClick(scope.row)">
-                            <el-tooltip :content="scope.row.shhf">
-                                <el-icon><WarningFilled /></el-icon>
+
+        <div class="order-container" v-loading="listLoading">
+            <el-empty v-if="!list.length" description="暂无符合条件的订单记录" :image-size="120"></el-empty>
+
+            <el-card v-for="(item, index) in list" :key="index" class="order-card" shadow="hover">
+                <div class="order-header">
+                    <div class="header-left">
+                        <span class="order-time">{{item.addtime}}</span>
+                        <span class="order-id">订单号：{{item.orderid}}</span>
+                    </div>
+                    <div class="header-right">
+                        <el-tag :type="getStatusColor(item.status)" effect="dark" round size="small">
+                            {{item.status}}
+                        </el-tag>
+                    </div>
+                </div>
+
+                <div class="order-body" @click="toDetailClick(item)">
+                    <div class="good-img-box">
+                        <img v-if="item.picture" :src="item.picture.substring(0,4)=='http' ? item.picture.split(',')[0] : $config.url+item.picture.split(',')[0]" class="good-img">
+                        <div v-else class="no-img">无图片</div>
+                    </div>
+                    
+                    <div class="good-info">
+                        <div class="good-name">{{item.goodname}}</div>
+                        <div class="good-attr">
+                            单价：<span v-if="item.type!=2">¥</span>{{item.price}} <span v-if="item.type==2">积分</span>
+                            <span style="margin: 0 10px; color: #ddd;">|</span>
+                            数量：x{{item.buynumber}}
+                        </div>
+                        <div class="delivery-info">
+                            <i class="el-icon-location-outline"></i> {{item.consignee}} - {{item.tel}} - {{item.address}}
+                        </div>
+                        <div class="remark-info" v-if="item.remark">
+                            <el-tag size="mini" type="info" effect="plain">备注：{{item.remark}}</el-tag>
+                        </div>
+                    </div>
+
+                    <div class="order-total-box">
+                        <div class="total-label">实付款</div>
+                        <div class="total-price">
+                            <span v-if="item.type!=2" style="font-size: 14px;">¥</span>{{item.total}}
+                            <span v-if="item.type==2" style="font-size: 14px;">积分</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-footer">
+                    <el-button v-if="item.status=='未支付'" type="primary" round @click="payClick(item)">立即支付</el-button>
+                    <el-button v-if="item.status=='未支付'" type="info" plain round @click="cancelClick(item)">取消订单</el-button>
+                    <el-button v-if="item.status=='已支付'" type="warning" plain round @click="refundPriceClick(item)">申请退款</el-button>
+                    
+                    <template v-if="!item.sfsh || item.sfsh=='否'">
+                        <el-button v-if="item.status=='已完成' && item.sfsh!='否'" type="danger" plain round @click="refundGoodClick(item)">申请退货</el-button>
+                        <el-button v-else-if="item.sfsh=='否'" type="danger" round @click="refundGoodClick(item)">
+                            <el-tooltip :content="item.shhf">
+                                <i class="el-icon-warning-outline"></i>
                             </el-tooltip>
-                            审核驳回
+                            重新退货
                         </el-button>
                     </template>
-                    <el-button class="refundGood_btn" v-else-if="scope.row.sfsh=='待审核'" type="danger">
-                        退货审核中
-                    </el-button>
-					<el-button class="logistics_btn" v-if="scope.row.logistics" type="primary" @click="logisticsClick(scope.row)">
-						物流
-					</el-button>
-					<el-button class="confirm_btn" v-if="scope.row.status=='已发货'" type="success" @click="confirmGoodClick(scope.row)">
-						确认收货
-					</el-button>
-					<el-button class="toDetail_btn" v-if="scope.row.status=='已完成'" type="warning" @click="toDetailClick(scope.row)">
-						评论
-					</el-button>
-				</template>
-			</el-table-column>
-		</el-table>
-		<el-pagination
-			background 
-			:layout="layouts.join(',')"
-			:total="total" 
-			:page-size="listQuery.limit"
-            v-model:current-page="listQuery.page"
-			prev-text="上一页"
-			next-text="下一页"
-			:hide-on-single-page="false"
-			:style='{}'
-			@size-change="sizeChange"
-			@current-change="currentChange" />
-		<el-dialog v-model="logisticsVisible" title="物流信息" width="70%">
-			<div v-html="logisticsText"></div>
+                    <el-button v-else-if="item.sfsh=='待审核'" type="info" plain disabled round>退货审核中</el-button>
+
+                    <el-button v-if="item.logistics" type="success" plain round @click="logisticsClick(item)">查看物流</el-button>
+                    <el-button v-if="item.status=='已发货'" type="success" round @click="confirmGoodClick(item)">确认收货</el-button>
+                    <el-button v-if="item.status=='已完成'" type="primary" plain round @click="toDetailClick(item)">再去逛逛</el-button>
+                </div>
+            </el-card>
+        </div>
+
+        <div class="pagination-wrapper">
+			<el-pagination
+				background 
+				:layout="layouts.join(',')"
+				:total="total" 
+				:page-size="listQuery.limit"
+				v-model:current-page="listQuery.page"
+				@size-change="sizeChange"
+				@current-change="currentChange" />
+		</div>
+
+        <el-dialog v-model="logisticsVisible" title="📦 配送物流信息" width="50%" center>
+			<div class="logistics-content" v-html="logisticsText"></div>
+            <template #footer>
+                <el-button type="primary" round @click="logisticsVisible = false">关闭</el-button>
+            </template>
 		</el-dialog>
 	</div>
 </template>
 
 <script setup>
-	import {
-		ref,
-		getCurrentInstance,
-		nextTick,
-	} from 'vue';
-	import {
-		ElMessageBox
-	} from 'element-plus'
-	import {
-		useRoute,
-		useRouter
-	} from 'vue-router';
+	import { ref, getCurrentInstance, nextTick } from 'vue';
+	import { ElMessageBox } from 'element-plus'
+	import { useRoute, useRouter } from 'vue-router';
+
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	const router = useRouter()
 	const route = useRoute()
-	//基础信息
+    const sessionTable = ref(context?.$toolUtil.storageGet('frontSessionTable'))
+
 	const tableName = 'orders'
 	const formName = '商品订单'
-	const table = ref(null)
-	const selRows = ref([])
 	const list = ref([])
 	const listLoading = ref(false)
 	const listQuery = ref({
 		page: 1,
-		limit: 20,
-		userid: context?.$toolUtil.storageGet('userid'),
-		sort:'id',
+		limit: 10,
+		userid: context?.$toolUtil.storageGet('frontUserid'),
+		sort:'addtime', // 建议按时间倒序
 		order:'desc'
 	})
-    //基础信息
+    
     const orderStatus = ref('')
-    if(['未支付'  ,'已支付','已发货','已完成','已退款','已取消'].includes(route.query.menuJump)){
+    if(['未支付','已支付','已发货','已完成','已退款','已取消'].includes(route.query.menuJump)){
         orderStatus.value = route.query.menuJump
     }
 
-    //权限验证
     const btnAuth = (e,a)=>{
         return context?.$toolUtil.isBackAuth(e,a)
     }
-    //返回
+
     const backClick = () => {
-        router.push(`/index/${context?.$toolUtil.storageGet('frontSessionTable')}Center`)
+        router.push(`/index/${sessionTable.value}Center`)
     }
 
-	//多选
-	const handleSelectionChange = (e) => {
-		selRows.value = e
-	}
-	//列表数据
+    // 状态颜色映射器
+    const getStatusColor = (status) => {
+        const map = {
+            '未支付': 'danger',
+            '已支付': 'warning',
+            '已发货': 'primary',
+            '已完成': 'success',
+            '已退款': 'info',
+            '已取消': 'info'
+        };
+        return map[status] || 'primary';
+    }
+
 	const getList = () => {
 		listLoading.value = true
 		let params = JSON.parse(JSON.stringify(listQuery.value))
@@ -199,7 +168,9 @@
 			params['status'] = orderStatus.value
 		}
 		context?.$http({
-			url: 'orders/list',
+            // ================= 核心修复 =================
+			url: 'orders/page', // 把 list 强制改为 page，启动后端 Token 数据隔离！
+            // ============================================
 			method: 'get',
 			params: params
 		}).then(res => {
@@ -208,29 +179,22 @@
 			total.value = Number(res.data.data.total)
 		})
 	}
-	//分页
-	const layouts = ref(["total","prev","pager","next","sizes","jumper"])
-	const total = ref(0)
-	const sizeChange = (size) => {
-		listQuery.value.limit = size
-		getList()
-	}
-	const currentChange = (page) => {
-		listQuery.value.page = page
-		getList()
-	}
-	//分页
 
-	//tab切换
+	const layouts = ref(["total","prev","pager","next"])
+	const total = ref(0)
+	const sizeChange = (size) => { listQuery.value.limit = size; getList(); }
+	const currentChange = (page) => { listQuery.value.page = page; getList(); }
+
 	const statusChange = () => {
 		listQuery.value.page = 1
 		getList()
 	}
-	//余额支付
+
+    // =============== 原汁原味的业务逻辑区 ===============
 	const payClick = (row) => {
-		ElMessageBox.confirm(`是否确定支付该订单？`, '提示', {
-			confirmButtonText: '是',
-			cancelButtonText: '否',
+		ElMessageBox.confirm(`是否确定支付该订单？`, '支付确认', {
+			confirmButtonText: '确定支付',
+			cancelButtonText: '暂不支付',
 			type: 'warning',
 		}).then(() => {
 			context?.$http({
@@ -238,37 +202,31 @@
 				method: 'get'
 			}).then(res => {
 				let data = res.data.data
-				if (userinfo.value.money < row.total) {
-					context?.$toolUtil.message('余额不足', 'error')
+				if (Number(userinfo.value.money) < Number(row.total)) {
+					context?.$toolUtil.message('余额不足，请先去个人中心充值', 'error')
 					return
 				}
-				//如果商品存在积分，则累加用户积分
 				if (data.jf) {
-					userinfo.value.jf = parseInt(userinfo.value.jf) + parseInt(row.total)
+					userinfo.value.jf = parseInt(userinfo.value.jf || 0) + parseInt(row.total)
 				}
-				//减去用户余额
 				userinfo.value.money = (parseFloat(userinfo.value.money) - parseFloat(row.total)).toFixed(2)
-				//如果商品存在库存，则减去商品库存
 				if (data.alllimittimes) {
 					data.alllimittimes = parseInt(data.alllimittimes) - parseInt(row.buynumber)
 				}
-                //更新商品信息
                 context?.$http.post(`${row.tablename}/update`,data)
 
-				//更新用户信息
 				context?.$http({
-					url: `${context?.$toolUtil.storageGet('frontSessionTable')}/update`,
+					url: `${sessionTable.value}/update`,
 					method: 'post',
 					data: userinfo.value
 				}).then(obj => {
 					row.status = '已支付'
-					//修改订单状态
 					context?.$http({
 						url: 'orders/update',
 						method: 'post',
 						data: row
 					}).then(res1 => {
-                        context.$message.success('支付成功')
+                        context.$message.success('支付成功，厨房马上为您准备！')
                         getSession()
                         statusChange()
 					})
@@ -276,123 +234,117 @@
 			})
 		}).catch(_ => {})
 	}
-	//取消订单
+
 	const cancelClick = (row) => {
-		ElMessageBox.confirm(`是否取消该订单？`, '提示', {
-			confirmButtonText: '是',
-			cancelButtonText: '否',
+		ElMessageBox.confirm(`确定要取消这个订单吗？`, '提示', {
+			confirmButtonText: '确定取消',
+			cancelButtonText: '点错了',
 			type: 'warning',
 		}).then(() => {
-			//未完成支付，未减去用户余额，未减去库存，未累加积分，则不需要用户操作跟商品库存操作
 			row.status = '已取消'
-			//修改订单状态
 			context?.$http({
 				url: 'orders/update',
 				method: 'post',
 				data: row
 			}).then(res1 => {
-                context.$message.success('取消成功')
+                context.$message.success('订单已取消')
                 getSession()
                 statusChange()
 			})
 		}).catch(_ => {})
 	}
-    //返回商品对象，如果商品存在库存,则返还库存
+
     const returnLimit = async (order)=>{
         let res = await context.$http.get(`${order.tablename}/info/${order.goodid}`)
         let data = res.data.data
-        if(data.alllimittimes){ //如果商品存在库存，则加回去
+        if(data.alllimittimes){ 
             data.alllimittimes = parseInt(data.alllimittimes) + parseInt(order.buynumber)
             context.$http.post(`${order.tablename}/update`,data)
         }
         return data
     }
-	// 退款
+
 	const refundPriceClick = (row) => {
-		ElMessageBox.confirm(`是否对该订单进行退款操作？`, '提示', {
-			confirmButtonText: '是',
-			cancelButtonText: '否',
+		ElMessageBox.confirm(`是否对该订单进行退款操作？`, '退款确认', {
+			confirmButtonText: '确认退款',
+			cancelButtonText: '再想想',
 			type: 'warning',
 		}).then(async () => {
             let data = await returnLimit(row)
             row.status = '已退款'
             if (row.type == 2) {
-                // 如果是积分兑换，则把减去的积分加回去
-                userinfo.value.jf = parseInt(userinfo.value.jf) + parseInt(row.total)
+                userinfo.value.jf = parseInt(userinfo.value.jf || 0) + parseInt(row.total)
             } else {
-                // 如果是购物或者团购模式，且商品存在积分，则把加上的积分减去
                 if (data.jf) {
-                    userinfo.value.jf = parseInt(userinfo.value.jf) - parseInt(row.total)
+                    userinfo.value.jf = parseInt(userinfo.value.jf || 0) - parseInt(row.total)
                 }
-                // 把减去的余额加回去
                 userinfo.value.money = (parseFloat(userinfo.value.money) + parseFloat(row.total)).toFixed(2)
             }
-            // 修改订单状态
             context.$http.post('orders/update',row)
-            // 更新用户信息
-            context.$http.post(`${context.$toolUtil.storageGet('frontSessionTable')}/update`,userinfo.value).then(res=>{
-                context.$message.success("退款成功")
+            context.$http.post(`${sessionTable.value}/update`,userinfo.value).then(res=>{
+                context.$message.success("退款成功，金额已返回您的账户")
                 getSession()
                 statusChange()
             })
 		}).catch(_ => {})
 	}
-	// 退货
+
 	const refundGoodClick = (row) => {
-		ElMessageBox.confirm(`${row.sfsh=='否'?'确定要重新提交申请吗？':'确定要申请退货？'}`, '提示', {
-			confirmButtonText: '是',
-			cancelButtonText: '否',
+		ElMessageBox.confirm(`${row.sfsh=='否'?'被驳回，确定要重新提交退货申请吗？':'确定要申请退货吗？'}`, '售后服务', {
+			confirmButtonText: '提交申请',
+			cancelButtonText: '取消',
 			type: 'warning',
 		}).then(() => {
             row.sfsh = '待审核'
             context.$http.post("orders/update",row).then(res=>{
                 if(res.data.code==0){
-                    context.$message.warning("退货申请已提交")
+                    context.$message.warning("退货申请已提交，等待管理员审核")
                 }
             })
 		}).catch(()=>{})
 	}
-	//确认收货
+
 	const confirmGoodClick = (row) => {
-		ElMessageBox.confirm(`是否确认收货？`, '提示', {
-			confirmButtonText: '是',
-			cancelButtonText: '否',
+		ElMessageBox.confirm(`您确认已经收到餐品了吗？`, '确认收货', {
+			confirmButtonText: '确认收货',
+			cancelButtonText: '还未收到',
 			type: 'warning',
 		}).then(() => {
-			//直接完成支付，已减去用户余额，已减去库存，已累加积分，则不需要用户操作跟商品库存操作
 			row.status = '已完成'
-			//修改订单状态
 			context?.$http({
 				url: 'orders/update',
 				method: 'post',
 				data: row
 			}).then(res1 => {
-                context.$message.success('确认收货成功')
+                context.$message.success('确认收货成功，祝您用餐愉快！')
                 getSession()
                 statusChange()
 			})
 		}).catch(_ => {})
 	}
-	//物流
+
 	const logisticsVisible = ref(false)
 	const logisticsText = ref('')
 	const logisticsClick = (row) => {
-		logisticsText.value = row.logistics
+		logisticsText.value = row.logistics || '暂无物流信息'
 		logisticsVisible.value = true
 	}
-	//去评论
+
 	const toDetailClick = (row) => {
-		router.push(`/index/${row.tablename}Detail?id=${row.goodid}`)
+        // 如果是点击详情或者评价，直接跳到菜品页即可
+		router.push(`/index/caipinxinxiDetail?id=${row.goodid}`)
 	}
+
 	const userinfo = ref({})
 	const getSession = () => {
 		context?.$http({
-			url: `${context?.$toolUtil.storageGet('frontSessionTable')}/session`,
+			url: `${sessionTable.value}/session`,
 			method: 'get'
 		}).then(res => {
 			userinfo.value = res.data.data
 		})
 	}
+
 	const init = () => {
 		getSession()
 		getList()
@@ -401,348 +353,138 @@
 </script>
 
 <style lang="scss" scoped>
-    .section_title{
-        text-align: center;
-        span{
-        border: 2px solid rgba(66, 66, 66, 1);
-        padding: 10px 40px;
-        margin: 0px 0px 20px;
-        color: var(--theme);
-        display: inline-block;
-        font-size: 24px;
-        text-align: center;
-        }
-    }
-	// 切换栏
-	.demo-tabs {
-		// 头部
-		:deep(.el-tabs__header) {
-			padding: 0;
-			box-shadow: none;
-			margin: 15px 0;
-			background: rgba(243, 243, 243, 1);
-			width: 100%;
-			border-width: 1px 0;
-			line-height: auto;
-			height: auto;
-			// 滑动区
-			.el-tabs__nav-scroll {
-				padding: 0;
-				display: flex;
-				width: 100%;
-				justify-content: center;
-				// list
-				.el-tabs__nav {
-					border: 0;
-					margin: 14px auto;
-					width: 100%;
-					text-align: center;
-					// item
-					.el-tabs__item {
-						border: 0px solid #eee;
-						padding: 0 20px;
-						margin: 0 10px 0 0;
-						color: #333;
-						background: #f6f6f6;
-						font-size: 16px;
-						line-height: 40px;
-						height: 40px;
-					}
-					// item active
-					.is-active {
-						border: 0px solid #eee;
-						margin: 0 10px 0 0;
-						color: #fff;
-						background: var(--theme);
-						font-size: 16px;
-					}
-					// item hover
-					.el-tabs__item:hover {
-						color: #fff;
-						background: var(--theme);
-					}
-				}
-			}
-		}
-	}
-	// 表格样式
-	.el-table {
-		padding: 0;
-		margin: 20px 0 0;
-		background: #fff;
-		width: 100%;
-		font-size: 15px;
-		border-color: #eee;
-		border-width: 1px 0 0 1px;
-		border-style: solid;
-		:deep(.el-table__header-wrapper) {
-			thead {
-				color: #333;
-				font-weight: 500;
-				width: 100%;
-				tr {
-					background: rgba(243, 243, 243, 1);
-					th {
-						padding: 8px 0;
-						background: rgba(243, 243, 243, 1);
-						border-color: rgba(216, 216, 216, 1);
-						border-width: 0 1px 1px 0;
-						border-style: solid;
-						text-align: left;
-						.cell {
-							padding: 0 10px;
-							word-wrap: normal;
-							color: rgba(158, 158, 158, 1);
-							white-space: nowrap;
-							font-weight: bold;
-							display: flex;
-							vertical-align: middle;
-							line-height: 24px;
-							text-overflow: ellipsis;
-							word-break: break-all;
-							width: 100%;
-							align-items: center;
-							position: relative;
-							min-width: 110px;
-							//未选中样式
-							.el-checkbox {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-							//选中样式
-							.is-checked {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		:deep(.el-table__body-wrapper) {
-			tbody {
-				width: 100%;
-				tr {
-					background: #fff;
-					td {
-						padding: 12px 0;
-						color: #666;
-						background: #fff;
-						border-color: #eee;
-						border-width: 0 1px 1px 0;
-						border-style: solid;
-						text-align: left;
-						.cell {
-							padding: 0 10px;
-							overflow: hidden;
-							word-break: break-all;
-							white-space: normal;
-							line-height: 24px;
-							text-overflow: ellipsis;
-							// 支付
-							.pay_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: var(--theme);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 支付-悬浮
-							.pay_btn:hover {
-							}
-							// 取消订单
-							.cancel_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: rgba(232, 183, 24, 1);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 取消订单-悬浮
-							.cancel_btn:hover {
-							}
-							// 退款
-							.refundPrice_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: rgba(232, 138, 24, 1);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 退款-悬浮
-							.refundPrice_btn:hover {
-							}
-							// 退货
-							.refundGood_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: rgba(196, 170, 125, 1);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 退货-悬浮
-							.refundGood_btn:hover {
-							}
-							// 物流
-							.logistics_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: rgba(237, 138, 68, 1);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 物流-悬浮
-							.logistics_btn:hover {
-							}
-							// 确认收货
-							.confirm_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: rgba(232, 149, 24, 1);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 确认收货-悬浮
-							.confirm_btn:hover {
-							}
-							// 评论
-							.toDetail_btn {
-								border: 0;
-								cursor: pointer;
-								border-radius: 4px;
-								padding: 0 5px;
-								margin: 0 5px 10px 0;
-								outline: none;
-								color: #fff;
-								background: var(--theme);
-								width: auto;
-								font-size: 14px;
-								height: 32px;
-							}
-							// 评论-悬浮
-							.toDetail_btn:hover {
-							}
-							//未选中样式
-							.el-checkbox {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-							//选中样式
-							.is-checked {
-								//复选框
-								.el-checkbox__inner {
-								}
-							}
-						}
-					}
-				}
-				tr.el-table__row--striped {
-					td {
-						background: #FAFAFA !important;
-					}
-				}
-				tr:hover {
-					td {
-						padding: 12px 0;
-						background: rgba(245, 245, 245, 1);
-						border-color: #eee;
-						border-width: 0 1px 0px 0;
-						border-style: solid;
-						text-align: left;
-					}
-				}
-			}
-		}
-	}
-		
+.modern-order-page {
+    width: 1000px;
+    margin: 0 auto;
+    padding: 30px 0 60px;
+    font-family: "Microsoft YaHei", sans-serif;
+}
 
-	// 分页器
-	.el-pagination {
-		// 总页码
-		:deep(.el-pagination__total) {
-		}
-		// 上一页
-		:deep(.btn-prev) {
-		}
-		// 下一页
-		:deep(.btn-next) {
-		}
-		// 上一页禁用
-		:deep(.btn-prev:disabled) {
-		}
-		// 下一页禁用
-		:deep(.btn-next:disabled) {
-		}
-		// 页码
-		:deep(.el-pager) {
-			// 数字
-			.number {
-			}
-			// 数字悬浮
-			.number:hover {
-			}
-			// 选中
-			.number.is-active {
-			}
-		}
-		// sizes
-		:deep(.el-pagination__sizes) {
-			.el-select {
-				//去掉默认样式
-				.select-trigger{
-					height: 100%;
-					.el-input{
-						height: 100%;
+/* 顶部卡片 */
+.breadcrumb-card {
+    border-radius: 12px;
+    border: none;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    :deep(.el-card__body) { padding: 15px 25px; }
+}
+.breadcrumb-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-					}
-				}
-			}
-		}
-		// 跳页
-		:deep(.el-pagination__jump) {
-			// 输入框
-			.el-input {
+/* 状态栏按钮（现代化大药丸风格） */
+.status-tabs-wrapper {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.modern-tabs :deep(.el-radio-button__inner) {
+    border-radius: 20px;
+    border: 1px solid #ebeef5;
+    background: #fff;
+    color: #606266;
+    margin: 0 10px;
+    box-shadow: none !important;
+    padding: 10px 25px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+.modern-tabs :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+    background-color: #4A90E2;
+    border-color: #4A90E2;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3) !important;
+}
 
-			}
-		}
-	}
+/* 卡片式订单容器 */
+.order-container {
+    min-height: 400px;
+}
+.order-card {
+    border-radius: 16px;
+    border: 1px solid #f0f2f5;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    :deep(.el-card__body) { padding: 0; }
+}
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.06) !important;
+}
+
+/* 订单头部 */
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f2f5;
+    .order-time { font-size: 14px; color: #606266; margin-right: 15px; font-weight: bold; }
+    .order-id { font-size: 13px; color: #909399; }
+}
+
+/* 订单主体内容 */
+.order-body {
+    display: flex;
+    padding: 20px 25px;
+    cursor: pointer;
+}
+.good-img-box {
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-right: 20px;
+    border: 1px solid #f0f2f5;
+    .good-img { width: 100%; height: 100%; object-fit: cover; }
+    .no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f5f7fa; color: #c0c4cc; font-size: 12px; }
+}
+
+.good-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .good-name { font-size: 18px; font-weight: bold; color: #303133; margin-bottom: 8px; }
+    .good-attr { font-size: 14px; color: #606266; margin-bottom: 8px; }
+    .delivery-info { font-size: 13px; color: #909399; }
+    .remark-info { margin-top: 5px; }
+}
+
+.order-total-box {
+    width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    border-left: 1px dashed #ebeef5;
+    padding-left: 20px;
+    .total-label { font-size: 13px; color: #909399; margin-bottom: 5px; }
+    .total-price { font-size: 24px; font-weight: bold; color: #F56C6C; }
+}
+
+/* 底部操作区 */
+.order-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 25px;
+    border-top: 1px solid #f0f2f5;
+    gap: 15px;
+    .el-button { margin: 0; }
+}
+
+/* 分页 */
+.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
+
+/* 物流弹窗 */
+.logistics-content {
+    padding: 20px;
+    line-height: 2;
+    color: #606266;
+    font-size: 15px;
+    background: #f5f7fa;
+    border-radius: 8px;
+}
 </style>

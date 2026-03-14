@@ -37,9 +37,6 @@ import java.io.IOException;
 /**
  * 我的收藏
  * 后端接口
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @RestController
 @RequestMapping("/storeup")

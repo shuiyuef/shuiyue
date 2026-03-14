@@ -12,10 +12,6 @@ import com.cl.entity.view.MenuView;
 
 /**
  * 菜单
- *
- * @author 
- * @email 
- * @date 2025-12-15 23:30:50
  */
 public interface MenuService extends IService<MenuEntity> {
 

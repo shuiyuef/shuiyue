@@ -13,10 +13,6 @@ import com.cl.entity.view.AboutusView;
 
 /**
  * 发展历程
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface AboutusDao extends BaseMapper<AboutusEntity> {
 	

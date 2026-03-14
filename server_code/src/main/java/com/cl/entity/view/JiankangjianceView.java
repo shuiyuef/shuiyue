@@ -15,9 +15,6 @@ import com.cl.utils.EncryptUtil;
  * 健康监测
  * 后端返回视图实体辅助类   
  * （通常后端关联的表或者自定义的字段需要返回使用）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("jiankangjiance")
 public class JiankangjianceView  extends JiankangjianceEntity implements Serializable {

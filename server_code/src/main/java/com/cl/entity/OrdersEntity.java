@@ -24,9 +24,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 /**
  * 商品订单
  * 数据库通用操作实体类（普通增删改查）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("orders")
 public class OrdersEntity<T> implements Serializable {

@@ -20,32 +20,25 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 
-
 /**
  * 老人
  * 数据库通用操作实体类（普通增删改查）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("laoren")
 public class LaorenEntity<T> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-
 	public LaorenEntity() {
-		
 	}
-	
+
 	public LaorenEntity(T t) {
 		try {
 			BeanUtils.copyProperties(this, t);
 		} catch (IllegalAccessException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * 主键id
 	 */
@@ -54,57 +47,44 @@ public class LaorenEntity<T> implements Serializable {
 	/**
 	 * 老人账号
 	 */
-					
 	private String laorenzhanghao;
-	
 	/**
 	 * 密码
 	 */
-					
 	private String mima;
-	
 	/**
 	 * 老人姓名
 	 */
-					
 	private String laorenxingming;
-	
 	/**
 	 * 性别
 	 */
-					
 	private String xingbie;
-	
 	/**
 	 * 头像
 	 */
-					
 	private String touxiang;
-	
 	/**
 	 * 年龄
 	 */
-					
 	private Integer nianling;
-	
 	/**
 	 * 饮食禁忌
 	 */
-					
 	private String yinshijinji;
-	
 	/**
 	 * 偏好口味
 	 */
-					
 	private String pianhaokouwei;
-	
 	/**
 	 * 余额
 	 */
-					
 	private Double money;
-	
+
+	/**
+	 * 手机号 (新增对接前端字段)
+	 */
+	private String shouji;
 
 	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
 	@DateTimeFormat
@@ -119,117 +99,78 @@ public class LaorenEntity<T> implements Serializable {
 	public Long getId() {
 		return id;
 	}
-
 	public void setId(Long id) {
 		this.id = id;
 	}
-	/**
-	 * 设置：老人账号
-	 */
+
 	public void setLaorenzhanghao(String laorenzhanghao) {
 		this.laorenzhanghao = laorenzhanghao;
 	}
-	/**
-	 * 获取：老人账号
-	 */
 	public String getLaorenzhanghao() {
 		return laorenzhanghao;
 	}
-	/**
-	 * 设置：密码
-	 */
+
 	public void setMima(String mima) {
 		this.mima = mima;
 	}
-	/**
-	 * 获取：密码
-	 */
 	public String getMima() {
 		return mima;
 	}
-	/**
-	 * 设置：老人姓名
-	 */
+
 	public void setLaorenxingming(String laorenxingming) {
 		this.laorenxingming = laorenxingming;
 	}
-	/**
-	 * 获取：老人姓名
-	 */
 	public String getLaorenxingming() {
 		return laorenxingming;
 	}
-	/**
-	 * 设置：性别
-	 */
+
 	public void setXingbie(String xingbie) {
 		this.xingbie = xingbie;
 	}
-	/**
-	 * 获取：性别
-	 */
 	public String getXingbie() {
 		return xingbie;
 	}
-	/**
-	 * 设置：头像
-	 */
+
 	public void setTouxiang(String touxiang) {
 		this.touxiang = touxiang;
 	}
-	/**
-	 * 获取：头像
-	 */
 	public String getTouxiang() {
 		return touxiang;
 	}
-	/**
-	 * 设置：年龄
-	 */
+
 	public void setNianling(Integer nianling) {
 		this.nianling = nianling;
 	}
-	/**
-	 * 获取：年龄
-	 */
 	public Integer getNianling() {
 		return nianling;
 	}
-	/**
-	 * 设置：饮食禁忌
-	 */
+
 	public void setYinshijinji(String yinshijinji) {
 		this.yinshijinji = yinshijinji;
 	}
-	/**
-	 * 获取：饮食禁忌
-	 */
 	public String getYinshijinji() {
 		return yinshijinji;
 	}
-	/**
-	 * 设置：偏好口味
-	 */
+
 	public void setPianhaokouwei(String pianhaokouwei) {
 		this.pianhaokouwei = pianhaokouwei;
 	}
-	/**
-	 * 获取：偏好口味
-	 */
 	public String getPianhaokouwei() {
 		return pianhaokouwei;
 	}
-	/**
-	 * 设置：余额
-	 */
+
 	public void setMoney(Double money) {
 		this.money = money;
 	}
-	/**
-	 * 获取：余额
-	 */
 	public Double getMoney() {
 		return money;
 	}
 
+	// ====== 新增手机号的 Get/Set 方法 ======
+	public void setShouji(String shouji) {
+		this.shouji = shouji;
+	}
+	public String getShouji() {
+		return shouji;
+	}
 }

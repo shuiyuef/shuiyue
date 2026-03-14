@@ -5,6 +5,10 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.*;
 import jakarta.servlet.http.HttpServletRequest;
+import com.cl.service.JiankangjianceService;
+import com.cl.entity.JiankangjianceEntity;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.cl.utils.ValidatorUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +46,6 @@ import com.cl.entity.StoreupEntity;
 /**
  * 菜品信息
  * 后端接口
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @RestController
 @RequestMapping("/caipinxinxi")
@@ -57,6 +58,56 @@ public class CaipinxinxiController {
 
     @Autowired
     private OrdersService ordersService;
+
+    @Autowired
+    private JiankangjianceService jiankangjianceService;
+
+    /**
+     * 智能健康食谱推荐 (根据老人最近一次健康数据) - 毕业设计核心亮点
+     */
+    @RequestMapping("/smartRecommend")
+    public R smartRecommend(HttpServletRequest request, @RequestParam(required = false) String laorenzhanghao) {
+        // 1. 如果没有传账号，直接返回默认的4道菜作为兜底
+        QueryWrapper<CaipinxinxiEntity> defaultQw = new QueryWrapper<>();
+        defaultQw.last("limit 4");
+
+        if(laorenzhanghao == null || laorenzhanghao.isEmpty()){
+            return R.ok().put("data", caipinxinxiService.list(defaultQw));
+        }
+
+        // 2. 查询该老人最新的一条健康监测记录
+        QueryWrapper<JiankangjianceEntity> healthQw = new QueryWrapper<>();
+        healthQw.eq("laorenzhanghao", laorenzhanghao);
+        healthQw.orderByDesc("dengjishijian"); // 按时间倒序
+        healthQw.last("limit 1"); // 只取最新的一条
+        JiankangjianceEntity health = jiankangjianceService.getOne(healthQw);
+
+        // 3. 构建菜品的动态查询条件
+        QueryWrapper<CaipinxinxiEntity> dishQw = new QueryWrapper<>();
+
+        if (health != null) {
+            // == 智能推荐算法逻辑 ==
+            // 假设收缩压超过140为偏高，推荐清淡或有降压成分的菜
+            if (health.getXueya() != null && health.getXueya().compareTo("140") > 0) {
+                dishQw.like("kouwei", "清淡").or().like("yingyangchengfen", "降压");
+            }
+            // 假设空腹血糖超过6.1为偏高，强制过滤掉所有“甜”口菜
+            if (health.getXuetang() != null && health.getXuetang().compareTo("6.1") > 0) {
+                dishQw.notLike("kouwei", "甜");
+            }
+        }
+
+        // 4. 查询符合条件的菜品，最多推荐4道
+        dishQw.last("limit 4");
+        List<CaipinxinxiEntity> recommendList = caipinxinxiService.list(dishQw);
+
+        // 如果严格条件没匹配到符合的菜（比如数据库菜品太少），给一个默认推荐保底，防止前端空白
+        if(recommendList == null || recommendList.isEmpty()){
+            recommendList = caipinxinxiService.list(defaultQw);
+        }
+
+        return R.ok().put("data", recommendList);
+    }
 
 
 

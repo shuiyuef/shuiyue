@@ -13,10 +13,6 @@ import com.cl.entity.view.MenuView;
 
 /**
  * 菜单
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface MenuDao extends BaseMapper<MenuEntity> {
 	

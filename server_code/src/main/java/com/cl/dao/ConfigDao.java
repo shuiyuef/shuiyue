@@ -13,10 +13,6 @@ import com.cl.entity.view.ConfigView;
 
 /**
  * 轮播图
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface ConfigDao extends BaseMapper<ConfigEntity> {
 	

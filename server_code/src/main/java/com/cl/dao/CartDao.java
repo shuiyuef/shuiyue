@@ -13,10 +13,6 @@ import com.cl.entity.view.CartView;
 
 /**
  * 购物车
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface CartDao extends BaseMapper<CartEntity> {
 	

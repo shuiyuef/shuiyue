@@ -12,10 +12,6 @@ import com.cl.entity.view.AddressView;
 
 /**
  * 地址
- *
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface AddressService extends IService<AddressEntity> {
 

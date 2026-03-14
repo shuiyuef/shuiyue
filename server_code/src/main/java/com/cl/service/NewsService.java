@@ -12,10 +12,6 @@ import com.cl.entity.view.NewsView;
 
 /**
  * 健康资讯
- *
- * @author 
- * @email 
- * @date 2025-12-15 23:30:50
  */
 public interface NewsService extends IService<NewsEntity> {
 

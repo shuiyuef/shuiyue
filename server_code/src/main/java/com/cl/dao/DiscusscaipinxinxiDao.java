@@ -13,10 +13,6 @@ import com.cl.entity.view.DiscusscaipinxinxiView;
 
 /**
  * 菜品信息评论表
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface DiscusscaipinxinxiDao extends BaseMapper<DiscusscaipinxinxiEntity> {
 	

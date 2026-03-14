@@ -13,10 +13,6 @@ import com.cl.entity.view.NewsView;
 
 /**
  * 健康资讯
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface NewsDao extends BaseMapper<NewsEntity> {
 	

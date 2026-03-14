@@ -12,10 +12,6 @@ import com.cl.entity.view.UsersView;
 
 /**
  * 管理员
- *
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface UsersService extends IService<UsersEntity> {
 

@@ -12,10 +12,6 @@ import com.cl.entity.view.SystemintroView;
 
 /**
  * 网站介绍
- *
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface SystemintroService extends IService<SystemintroEntity> {
 

@@ -12,10 +12,6 @@ import com.cl.entity.view.JiankangjianceView;
 
 /**
  * 健康监测
- *
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface JiankangjianceService extends IService<JiankangjianceEntity> {
 

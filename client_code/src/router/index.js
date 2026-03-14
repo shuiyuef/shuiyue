@@ -39,7 +39,17 @@ const routes = [{
 	{
 		path: '/index',
 		component: index,
-		children: [{
+		children: [
+			// 这是我们全新加入的现代化详情页路由
+			{
+				path: 'newsDetail',
+				component: () => import('../views/pages/news/detail.vue')
+			},
+			{
+				path: 'caipinxinxiDetail',
+				component: () => import('../views/pages/caipinxinxi/detail.vue')
+			},
+			{
 			path: 'home',
 			component: home
 		}
@@ -140,7 +150,7 @@ const routes = [{
 		, {
 			path: 'ordersList',
 			component: ordersList
-		}
+		},
 		]
 	},
 	{

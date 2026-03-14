@@ -1,117 +1,73 @@
 <template>
-	<div class="list-page" :style='{}'>
-        <div class="breadcrumb-wrapper" style="width: 100%;">
-            <div class="bread_view">
-                <el-breadcrumb separator="—" class="breadcrumb">
-                    <el-breadcrumb-item class="first_breadcrumb" :to="{ path: '/' }">首页</el-breadcrumb-item>
-                    <el-breadcrumb-item class="second_breadcrumb" v-for="(item,index) in breadList" :key="index">{{item.name}}</el-breadcrumb-item>
+    <div class="list-page">
+        <el-card shadow="hover" class="list_search_card">
+            <div class="breadcrumb-wrapper">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+                    <el-breadcrumb-item v-for="(item,index) in breadList" :key="index">{{item.name}}</el-breadcrumb-item>
                 </el-breadcrumb>
             </div>
-            <div class="back_view" v-if="centerType">
-                <el-button class="back_btn" @click="backClick" type="primary">返回</el-button>
-            </div>
+            
+            <el-form :inline="true" :model="searchQuery" class="list_search">
+                <div class="search_view">
+                    <el-input class="search_inp" v-model="searchQuery.caipinmingcheng" placeholder="想吃点什么？搜索菜品..." clearable prefix-icon="el-icon-search"></el-input>
+                </div>
+                <div class="search_btn_view">
+                    <el-button type="primary" @click="searchClick" round icon="el-icon-search">搜索</el-button>
+                    <el-button type="success" v-if="btnAuth('caipinxinxi','新增')" @click="addClick" round>新增菜品</el-button>
+                </div>
+            </el-form>
+        </el-card>
+
+        <div class="modern-dish-grid" v-loading="listLoading">
+            <el-row :gutter="24">
+                <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(item, index) in list" :key="index" style="margin-bottom: 24px;">
+                    <el-card shadow="hover" class="dish-card" @click="tableDetailClick(item)" :body-style="{ padding: '0px' }">
+                        <div class="img-wrapper">
+                            <img v-if="item.caipintupian" :src="item.caipintupian.substring(0,4)=='http' ? item.caipintupian.split(',')[0] : $config.url + item.caipintupian.split(',')[0]" class="dish-img" />
+                            <div v-else class="no-img">暂无图片</div>
+                        </div>
+                        <div class="dish-content">
+                            <h3 class="dish-title">{{item.caipinmingcheng}}</h3>
+                            <div class="dish-tags">
+                                <el-tag size="small" type="warning" effect="light" round v-if="item.kouwei">{{item.kouwei}}</el-tag>
+                                <el-tag size="small" type="info" effect="plain" round v-if="item.caipinfenlei" style="margin-left: 5px;">{{item.caipinfenlei}}</el-tag>
+                            </div>
+                            <div class="dish-footer">
+                                <span class="price">¥ {{item.price || item.danjia || '0.00'}}</span>
+                                <div class="admin-actions" v-if="btnAuth('caipinxinxi','修改') || btnAuth('caipinxinxi','删除')">
+                                    <el-button v-if="btnAuth('caipinxinxi','修改')" type="primary" link icon="el-icon-edit" @click.stop="editClick(item.id)"></el-button>
+                                    <el-button v-if="btnAuth('caipinxinxi','删除')" type="danger" link icon="el-icon-delete" @click.stop="delClick(item.id)"></el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            <el-empty v-if="list.length === 0" description="未找到相关菜品" />
         </div>
-		<el-form :inline="true" :model="searchQuery" class="list_search">
-			<div class="search_view">
-				<div class="search_label">
-					菜品名称：
-				</div>
-				<div class="search_box">
-					<el-input class="search_inp" v-model="searchQuery.caipinmingcheng" placeholder="菜品名称"
-						clearable>
-					</el-input>
-				</div>
-			</div>
-			<div class="search_btn_view">
-				<el-button class="search_btn" type="primary" @click="searchClick">搜索</el-button>
-				<el-button class="add_btn" type="success" v-if="btnAuth('caipinxinxi','新增')" @click="addClick">新增</el-button>
-			</div>
-		</el-form>
-        <div class="sort-wrapper">
-            <el-button class="item price" @click="sortClick('price')" :class="{active:sortType=='price'}">
-                <el-icon class="icon" v-if="sortType!='price'"><DCaret /></el-icon>
-                <el-icon class="icon desc" v-else-if="sortOrder=='desc'"><SortDown /></el-icon>
-                <el-icon class="icon asc" v-else><SortUp /></el-icon>
-                价格
-            </el-button>
-            <el-button class="item storeup" @click="sortClick('storeupNumber')" :class="{active:sortType=='storeupNumber'}">
-                <el-icon class="icon" v-if="sortType!='storeupNumber'"><DCaret /></el-icon>
-                <el-icon class="icon desc" v-else-if="sortOrder=='desc'"><SortDown /></el-icon>
-                <el-icon class="icon asc" v-else><SortUp /></el-icon>
-                收藏数
-            </el-button>
+
+        <div class="pagination-wrapper">
+            <el-pagination background :layout="layouts.join(',')" :total="total" :page-size="listQuery.limit" v-model:current-page="listQuery.page" @size-change="sizeChange" @current-change="currentChange" />
         </div>
-		<div class="page_list">
-			<div class="data_box">
-				<div class="data_view">
-					<div class="data_item" v-for="(item,index) in list" :key="index" @click.stop="detailClick(item.id)" >
-						<div class="data_img_box" v-if="item.caipintupian && item.caipintupian.substr(0,4)=='http'" @click.stop="preViewClick(item.caipintupian)">
-							<el-image class="data_img" :src="item.caipintupian" fit="cover"></el-image>
-						</div>
-						<div class="data_img_box" v-else @click.stop="preViewClick($config.url+item.caipintupian.split(',')[0])">
-							<el-image class="data_img" :src="item.caipintupian?$config.url + item.caipintupian.split(',')[0]:''"
-								fit="cover"></el-image>
-						</div>
-						<div class="data_content">
-							<div class="data_title"><span>{{item.caipinmingcheng}}</span></div>
-							<div class="data_price" v-if="item.price"><span>￥</span><span>{{item.price}}</span></div>
-						</div>
-					</div>
-				</div>
-				<el-pagination
-					background 
-					:layout="layouts.join(',')"
-					:total="total" 
-					:page-size="listQuery.limit"
-                    v-model:current-page="listQuery.page"
-					prev-text="上一页"
-					next-text="下一页"
-					:hide-on-single-page="false"
-					:style='{}'
-					@size-change="sizeChange"
-					@current-change="currentChange"/>
-			</div>
-		</div>
-		<el-dialog v-model="preViewVisible" :title="'查看大图'" width="40%" destroy-on-close>
-            <div style="text-align:center">
-                <img :src="preViewUrl" style="max-width: 100%;" alt="">
-            </div>
-		</el-dialog>
-	</div>
+    </div>
 </template>
 
 <script setup>
-	import {
-		ref,
-		getCurrentInstance,
-		nextTick,
-        computed,
-        inject,
-	} from 'vue';
-	import {
-		useRoute,
-		useRouter
-	} from 'vue-router';
-    import {
-        useStore
-    } from 'vuex';
-    const store = useStore()
-    const user = computed(()=>store.getters['user/session'])
+	import { ref, getCurrentInstance, nextTick, computed, inject } from 'vue';
+	import { useRoute, useRouter } from 'vue-router';
+	import { useStore } from 'vuex';
+	const store = useStore()
+	const user = computed(()=>store.getters['user/session'])
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	const router = useRouter()
 	const route = useRoute()
 	//基础信息
 	const tableName = 'caipinxinxi'
 	const formName = '菜品信息'
-	//基础信息
-	const breadList = ref([{
-		name: formName
-	}])
+	const breadList = ref([{ name: formName }])
 	const list = ref([])
-	const listQuery = ref({
-		page: 1,
-		limit: Number(20)
-	})
+	const listQuery = ref({ page: 1, limit: 12 }) // 卡片布局建议改成12或16个一页
 	const total = ref(0)
 	const listLoading = ref(false)
 	//权限验证
@@ -133,13 +89,12 @@
 	}
 	//搜索
 	const searchQuery = ref({})
-	//下拉列表
 	const searchClick = () => {
 		listQuery.value.page = 1
 		getList()
 	}
 	//分页
-	const layouts = ref(["total","prev","pager","next","sizes","jumper"])
+	const layouts = ref(["total","prev","pager","next","jumper"])
 	const sizeChange = (size) => {
 		listQuery.value.limit = size
 		getList()
@@ -148,32 +103,13 @@
 		listQuery.value.page = page
 		getList()
 	}
-	//分页
-    const sortType = ref('')
-    const sortOrder = ref('')
-    const sortClick = (type)=>{
-        if(sortType.value==type && sortOrder.value=='asc'){
-            sortType.value = ''
-            sortOrder.value = ''
-        }else if(sortType.value==type && sortOrder.value=='desc'){
-            sortOrder.value = 'asc'
-        }else{
-            sortType.value = type
-            sortOrder.value = 'desc'
-        }
-        getList()
-    }
 	//列表
 	const getList = () => {
 		listLoading.value = true
 		let params = JSON.parse(JSON.stringify(listQuery.value))
-		if(searchQuery.value.caipinmingcheng&&searchQuery.value.caipinmingcheng!=''){
+		if(searchQuery.value.caipinmingcheng && searchQuery.value.caipinmingcheng != ''){
 			params.caipinmingcheng = '%' + searchQuery.value.caipinmingcheng + '%'
 		}
-        if(sortType.value){
-            params['sort'] = sortType.value
-            params['order'] = sortOrder.value
-        }
 		context?.$http({
 			url: `${tableName}/${centerType.value?'page':'list'}`,
 			method: 'get',
@@ -184,235 +120,225 @@
 			total.value = Number(res.data.data.total)
 		})
 	}
-	const detailClick = (id) => {
-		router.push(`${tableName}Detail?id=` + id + (centerType.value?'&&centerType=1':''))
+	const tableDetailClick = (row) => {
+		router.push(`${tableName}Detail?id=` + row.id + (centerType.value?'&&centerType=1':''))
 	}
-	//下载文件
-	const download = (file) =>{
-		if(!file){
-			context?.$toolUtil.message('文件不存在','error')
-		}
-		const a = document.createElement('a');
-		a.style.display = 'none';
-		a.setAttribute('target', '_blank');
-		file && a.setAttribute('download', file);
-		a.href = context?.$config.url + file;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
+	const editClick = (id) => {
+		router.push('caipinxinxiAdd?id=' + id + (centerType.value?'&centerType=1':''))
 	}
-	// 查看大图
-	const preViewUrl = ref('')
-	const preViewVisible = ref(false)
-	const preViewClick = (url) =>{
-		preViewUrl.value = url
-		preViewVisible.value = true
+	const delClick = (id) => {
+		context?.$confirm('是否确认删除?', '提示', {
+			confirmButtonText: '确定',
+			cancelButtonText: '取消',
+			type: 'warning'
+		}).then(()=>{
+			context?.$http({
+				url: `caipinxinxi/delete`,
+				method: 'post',
+				data: [id]
+			}).then(res=>{
+				context?.$message.success('删除成功')
+				getList()
+			})
+		})
 	}
 	const init = async() => {
 		if(route.query.centerType){
 			centerType.value = true
 		}
-        if(context.$toolUtil.storageGet('frontToken') && !user.value.id){
-            await store.dispatch("user/getSession")
-        }
+		if(context.$toolUtil.storageGet('frontToken') && !user.value.id){
+			await store.dispatch("user/getSession")
+		}
 		getList()
 	}
 	init()
 </script>
+
 <style lang="scss" scoped>
-	// 返回盒子
-	.back_view {
-		// 返回按钮
-		.back_btn {
-		}
-		// 返回按钮-悬浮
-		.back_btn:hover {
-		}
-	}
-	.bread_view {
-		:deep(.breadcrumb) {
-			.el-breadcrumb__separator {
-			}
-			.first_breadcrumb {
-				.el-breadcrumb__inner {
-				}
-			}
-			.second_breadcrumb {
-				.el-breadcrumb__inner {
-				}
-			}
-		}
-	}
-	// 分类盒子
-	.category_view {
-		// 分类item
-		.category {
-		}
-		// item-悬浮
-		.category:hover {
-		}
-		// item-选中
-		.categoryActive {
-		}
-	}
+.list-page { 
+    margin: 0 auto; 
+    padding: 30px 0 50px; 
+    width: 1200px; 
+}
 
-	//搜索
-	.list_search {
-		.search_view {
-			.search_label {
-			}
-			.search_box {
-				// 输入框
-				:deep(.search_inp) {
-					.is-focus {
-						box-shadow: none !important;
-					}
-				}
-			}
-		}
-		.search_btn_view {
-			// 搜索按钮
-			.search_btn {
-			}
-			// 搜索按钮-悬浮
-			.search_btn:hover {
-			}
-			// 新增按钮
-			.add_btn {
-			}
-			// 新增按钮-悬浮
-			.add_btn:hover {
-			}
-		}
-	}
+/* 融合式的顶部控制台（把面包屑和搜索框整合到一个卡片里） */
+.list_search_card { 
+    border-radius: 16px; 
+    margin-bottom: 30px; 
+    border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+.list_search_card :deep(.el-card__body) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+}
 
-	// 数据盒子
-	.page_list {
-		//列表
-		.data_box {
-			.data_view {
-				.data_item {
-					// 图片盒子
-					.data_img_box {
-						// 图片
-						.data_img {
-						}
-					}
-					// 内容盒子
-					.data_content {
-						// 价格
-						.data_price {
-						}
-						// 标题
-						.data_title {
-						}
-						// 底部栏
-						.data_operate_box {
-							// 点赞数
-							.data_like {
-								.like_icon {
-								}
-								.like_num {
-								}
-							}
-							// 收藏数
-							.data_collect {
-								.el-icon {
-								}
-								.collect_num {
-								}
-							}
-							// 点击数
-							.data_clickNum {
-								.el-icon {
-								}
-								.clickNum_num {
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+/* 隐藏单独的面包屑背景，让它融入环境 */
+.breadcrumb-wrapper { 
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+:deep(.el-breadcrumb) {
+    font-size: 15px;
+}
+:deep(.el-breadcrumb__inner) {
+    font-weight: bold !important;
+    color: #606266;
+}
 
-	// 分页器
-	.el-pagination {
-		// 总页码
-		:deep(.el-pagination__total) {
-		}
-		// 上一页
-		:deep(.btn-prev) {
-		}
-		// 下一页
-		:deep(.btn-next) {
-		}
-		// 上一页禁用
-		:deep(.btn-prev:disabled) {
-		}
-		// 下一页禁用
-		:deep(.btn-next:disabled) {
-		}
-		// 页码
-		:deep(.el-pager) {
-			// 数字
-			.number {
-			}
-			// 数字悬浮
-			.number:hover {
-			}
-			// 选中
-			.number.is-active {
-			}
-		}
-		// sizes
-		:deep(.el-pagination__sizes) {
-			.el-select {
-				//去掉默认样式
-				.select-trigger{
-					height: 100%;
-					.el-input{
-						height: 100%;
-						.is-focus {
-							box-shadow: none !important;
-						}
-					}
-				}
-			}
-		}
-		// 跳页
-		:deep(.el-pagination__jump) {
-			// 输入框
-			.el-input {
-				.is-focus {
-					box-shadow: none !important;
-				}
-			}
-		}
-	}
-	
-	// 热门信息盒子
-	.hot_view {
-		// 标题
-		.hot_title {
-		}
+/* 搜索区域更紧凑 */
+.list_search {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+.search_view { 
+    display: flex; 
+    align-items: center; 
+    margin-right: 15px; 
+}
+.search_label { 
+    display: none; /* 隐藏啰嗦的文字标签 */
+}
+:deep(.el-input__inner) { 
+    border-radius: 20px !important; 
+    background: #f5f7fa !important; 
+    border: 1px solid #ebeef5 !important;
+    width: 260px;
+    height: 40px;
+    line-height: 40px;
+    transition: all 0.3s;
+}
+:deep(.el-input__inner):focus { 
+    background: #fff !important; 
+    border-color: #4A90E2 !important;
+    width: 300px; /* 聚焦时稍微变长，增加交互感 */
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+}
+.search_btn_view {
+    display: flex;
+    align-items: center;
+}
+.search_btn_view .el-button {
+    font-weight: bold;
+    padding: 10px 20px;
+}
 
-		.hot_list {
-			// item
-			.hot {
-				//图片盒子
-				.hot_img_view {
-					// 图片
-					.hot_img {
-					}
-				}
-				// 内容盒子
-				.hot_content {
-					// 名称
-					.hot_text {
-					}
-				}
-			}
-		}
-	}
+/* ================== 菜品卡片网格样式 ================== */
+.modern-dish-grid {
+    margin-top: 10px;
+}
+.dish-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.dish-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12) !important;
+}
+
+.img-wrapper {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: #f8f9fa;
+    position: relative;
+}
+.dish-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.dish-card:hover .dish-img {
+    transform: scale(1.08); /* 鼠标悬浮时图片轻微放大 */
+}
+
+.no-img {
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #999;
+}
+
+/* 卡片文字内容区 */
+.dish-content {
+    padding: 20px;
+    background: #fff;
+}
+.dish-title {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #303133;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dish-tags { 
+    margin-bottom: 15px; 
+    display: flex;
+    gap: 8px;
+}
+
+.dish-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #ebeef5;
+    padding-top: 15px;
+}
+.price {
+    color: #F56C6C;
+    font-size: 22px;
+    font-weight: bold;
+}
+.price::before {
+    content: '¥';
+    font-size: 14px;
+    margin-right: 2px;
+}
+.admin-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* 分页器居中展示 */
+.pagination-wrapper { 
+    margin-top: 40px; 
+    display: flex; 
+    justify-content: center; 
+}
+:deep(.el-pagination.is-background .el-pager li:not(.disabled).is-active) {
+    background-color: #4A90E2;
+}
+
+/* 修复搜索框双层包裹感 */
+:deep(.search_inp .el-input__wrapper) {
+    border-radius: 20px;
+    box-shadow: 0 0 0 1px #ebeef5 inset;
+    background: #f5f7fa;
+    transition: all 0.3s;
+}
+:deep(.search_inp .el-input__wrapper.is-focus) {
+    box-shadow: 0 0 0 2px #4A90E2 inset !important;
+    background: #fff;
+}
+:deep(.search_inp .el-input__inner) {
+    border: none !important; /* 核心：干掉内部边框 */
+    height: 38px;
+    line-height: 38px;
+    background: transparent !important;
+}
+
 </style>

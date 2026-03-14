@@ -1,118 +1,134 @@
 <template>
-	<div>
-		<div class="home_box">
-			<!-- 关于我们 -->
-			<div class="aboutUs_view">
-				<div class="aboutUs_title"><span>{{aboutUsDetail.title}}</span></div>
-				<div class="aboutUs_subtitle"><span>{{aboutUsDetail.subtitle}}</span></div>
-				<div class="aboutUs_content"><div v-html="aboutUsDetail.content"></div></div>
-				<div class="aboutUs_img_box">
-					<img class="aboutUs_img1" :src="aboutUsDetail.picture1?$config.url + aboutUsDetail.picture1:''" alt="">
-					<img class="aboutUs_img2" :src="aboutUsDetail.picture2?$config.url + aboutUsDetail.picture2:''" alt="">
-					<img class="aboutUs_img3" :src="aboutUsDetail.picture3?$config.url + aboutUsDetail.picture3:''" alt="">
-				</div>
-				<div class="aboutUs_default1"></div>
-				<div class="aboutUs_default2"></div>
-				<div class="aboutUs_default3"></div>
-				<div class="aboutUs_default4"></div>
+	<div class="modern-home-page">
+		<div class="shortcut-area">
+			<div class="shortcut-item health-item" @click="$router.push('/index/jiankangjianceAdd')">
+				<div class="icon-box"><i class="el-icon-medal"></i></div>
+				<span class="shortcut-text">健康打卡</span>
+				<p class="shortcut-desc">每日记录您的健康指标</p>
 			</div>
-			<!-- 系统简介 -->
-			<div class="systemInfo_view">
-				<div class="systemInfo_title"><span>{{systemInfoDetail.title}}</span></div>
-				<div class="systemInfo_subtitle"><span>{{systemInfoDetail.subtitle}}</span></div>
-				<div class="systemInfo_content"><div v-html="systemInfoDetail.content"></div></div>
-				<div class="systemInfo_img_box">
-					<img class="systemInfo_img1" :src="systemInfoDetail.picture1?$config.url + systemInfoDetail.picture1:''" alt="">
-					<img class="systemInfo_img2" :src="systemInfoDetail.picture2?$config.url + systemInfoDetail.picture2:''" alt="">
-					<img class="systemInfo_img3" :src="systemInfoDetail.picture3?$config.url + systemInfoDetail.picture3:''" alt="">
-				</div>
-				<div class="systemInfo_default1"></div>
-				<div class="systemInfo_default2"></div>
-				<div class="systemInfo_default3"></div>
-				<div class="systemInfo_default4"></div>
+			<div class="shortcut-item doc-item" @click="$router.push('/index/jiankangjianceList')">
+				<div class="icon-box"><i class="el-icon-document"></i></div>
+				<span class="shortcut-text">健康档案</span>
+				<p class="shortcut-desc">一键下载体检与食谱</p>
 			</div>
-			<!-- 菜品信息推荐 -->
-			<div class="recomList_view">
-				<div class="recomList_title">
-                    <span>菜品信息推荐</span>
+			<div class="shortcut-item food-item" @click="$router.push('/index/caipinxinxiList')">
+				<div class="icon-box"><i class="el-icon-food"></i></div>
+				<span class="shortcut-text">营养大厅</span>
+				<p class="shortcut-desc">浏览社区全部健康膳食</p>
+			</div>
+			<div class="shortcut-item feedback-item" @click="$router.push('/index/fankuiyujianyiAdd')">
+				<div class="icon-box"><i class="el-icon-chat-line-square"></i></div>
+				<span class="shortcut-text">意见反馈</span>
+				<p class="shortcut-desc">倾听您的每一个建议</p>
+			</div>
+		</div>
+
+		<div class="recommend-section" v-if="recommendList && recommendList.length > 0">
+			<div class="section-header">
+				<div class="title-left">
+                    <i class="el-icon-magic-stick" style="color: #67C23A; font-size: 28px; margin-right: 10px;"></i>
+                    <h2 class="title">专属健康膳食推荐</h2>
                 </div>
-				<div class="recommend_list_two">
-					<mySwiper :data="caipinxinxiRecomList" :type="3"
-						:loop="true"
-						:navigation="false"
-						:pagination="false"
-						:paginationType="1"
-						:scrollbar="false"
-						:slidesPerView="5"
-						:spaceBetween="20"
-						:autoHeight="false"
-						:centeredSlides="false"
-						:freeMode="false"
-						:effectType="2"
-						:direction="horizontal"
-						:autoplay="false"
-						:slidesPerColumn="1">
-						<template #default="scope">
-							<div class="recommend_item animation_box" @click="detailClick('caipinxinxi',scope.row.id)">
-								<div class="recommend_img_box">
-									<img class="recommend_img" v-if="isHttp(scope.row.caipintupian)" :src="scope.row.caipintupian.split(',')[0]" alt="">
-									<img class="recommend_img" v-else :src="scope.row.caipintupian?$config.url + scope.row.caipintupian.split(',')[0]:''" alt="">
+				<p class="subtitle">系统依据您最新的【血压、血糖】档案，由算法为您精选以下易消化、均衡营养餐品。</p>
+			</div>
+			<div class="recommend-grid">
+				<el-row :gutter="24">
+					<el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(item, index) in recommendList" :key="index">
+						<el-card shadow="hover" class="food-card" @click="$router.push(`/index/caipinxinxiDetail?id=${item.id}`)">
+							<div class="food-img-wrapper">
+								<img :src="item.caipintupian ? ($config.url + item.caipintupian.split(',')[0]) : ''" class="food-img" />
+							</div>
+							<div class="food-info">
+								<h3 class="food-name">{{item.caipinmingcheng}}</h3>
+								<div class="food-tags">
+									<el-tag size="small" type="success" effect="plain" round v-if="item.kouwei">{{item.kouwei}}</el-tag>
+									<el-tag size="small" type="warning" effect="light" round v-if="item.caipinfenlei" style="margin-left:5px">{{item.caipinfenlei}}</el-tag>
 								</div>
-								<div class="recommend_content">
-									<div class='recommend_title'>
-										{{scope.row.caipinmingcheng}}
-									</div>
-									<div class="recommend_price">
-										￥{{scope.row.price}}
-									</div>
-									<div class="recommend_bottom">
-										<div class="recommend_like" v-if="scope.row.thumbsupNumber">
-											<span class="iconfont icon-thumb-up-line1 like_icon"></span>
-											<div class="num">{{scope.row.thumbsupNumber}}</div>
-										</div>
-										<div class="recommend_collect" v-if="scope.row.storeupNumber">
-											<el-icon><StarFilled /></el-icon>
-											<div class="num">{{scope.row.storeupNumber}}</div>
-										</div>
-										<div class="recommend_clickNum" v-if="scope.row.clickNumber">
-											<el-icon><View /></el-icon>
-											<div class="num">{{scope.row.clickNumber}}</div>
-										</div>
-									</div>
+								<div class="food-bottom">
+									<span class="food-price">¥ {{item.price || item.danjia || '0.00'}}</span>
+									<el-button type="primary" circle icon="el-icon-plus" size="small" class="add-btn"></el-button>
 								</div>
 							</div>
-						</template>
-					</mySwiper>
-				</div>
-				<div class="recommend_more_view" @click="moreClick('caipinxinxi')">
-					<span class="recommend_more_text">查看更多</span>
-				</div>
+						</el-card>
+					</el-col>
+				</el-row>
 			</div>
-			<!-- 健康资讯 -->
-			<div class="newsList_view">
-				<div class="ntitle"><div class="n1">健康资讯</div></div>
-				
-				    <div class="nlist">
-				         <ul> 
-				        <li v-for="(item,index) in newsList" :key="index" @click="newsDetailClick(item)">
-				          
-				          <div class="tim"><div class="t1">{{moment(item.addtime).format('DD')}}</div><div class="t2">{{moment(item.addtime).format('YYYY-MM-DD')}}</div></div>
-				          
-				          <div class="infobox">
-				            <div class="nam">{{item.title}}</div>
-				            <div class="info">{{item.introduction}}</div>
-				          </div>
-				          
-				        </li>
-				         </ul> 
-				    </div>
-				
-				<div class="nmore" @click="moreClick('news')" style="cursor: pointer">查看更多</div>
-			</div>
-
 		</div>
-		<formModel ref="newsFormModelRef"></formModel>
+
+        <div class="home-module" v-if="caipinxinxiList && caipinxinxiList.length > 0">
+            <div class="module-header">
+                <h2 class="module-title"><i class="el-icon-dish" style="color: #E6A23C; margin-right: 8px;"></i> 社区热门菜品</h2>
+                <el-button type="primary" link @click="$router.push('/index/caipinxinxiList')">查看全部菜单 <i class="el-icon-arrow-right"></i></el-button>
+            </div>
+            <el-row :gutter="24">
+                <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(item, index) in caipinxinxiList.slice(0, 8)" :key="index" style="margin-bottom: 24px;">
+                    <el-card shadow="hover" class="hot-food-card" @click="$router.push(`/index/caipinxinxiDetail?id=${item.id}`)">
+                        <div class="img-zoom">
+                            <img :src="item.caipintupian ? ($config.url + item.caipintupian.split(',')[0]) : ''" class="hot-img" />
+                        </div>
+                        <div class="hot-info">
+                            <h3 class="hot-name">{{item.caipinmingcheng}}</h3>
+                            <div class="hot-bottom">
+                                <span class="hot-price">¥ {{item.price || item.danjia || '0.00'}}</span>
+                                <span class="hot-sales" v-if="item.alllimittimes">今日余量: {{item.alllimittimes}}</span>
+                            </div>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+        </div>
+
+        <div class="home-module" v-if="newsList && newsList.length > 0">
+            <div class="module-header">
+                <h2 class="module-title"><i class="el-icon-reading" style="color: #409EFF; margin-right: 8px;"></i> 社区动态与健康资讯</h2>
+                <el-button type="primary" link @click="$router.push('/index/newsList')">更多资讯 <i class="el-icon-arrow-right"></i></el-button>
+            </div>
+            <div class="news-list">
+                <el-row :gutter="30">
+                    <el-col :span="12" v-for="(item, index) in newsList.slice(0, 6)" :key="index" style="margin-bottom: 20px;">
+                        <div class="news-card" @click="$router.push(`/index/newsDetail?id=${item.id}`)">
+                            <img :src="item.picture ? ($config.url + item.picture.split(',')[0]) : ''" class="news-img" />
+                            <div class="news-content">
+                                <h4 class="news-title">{{item.title}}</h4>
+                                <p class="news-desc">{{item.introduction || '点击查看资讯详情...'}}</p>
+                                <div class="news-time"><i class="el-icon-time"></i> {{item.addtime}}</div>
+                            </div>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+        </div>
+
 	</div>
+
+	<div class="home-module system-intro-section" v-if="systemInfoDetail && systemInfoDetail.title">
+            <div class="module-header" style="border-bottom: none; margin-bottom: 20px;">
+                <h2 class="module-title" style="font-size: 28px; color: #303133;">
+                    <i class="el-icon-office-building" style="color: #4A90E2; margin-right: 10px;"></i> 
+                    {{ systemInfoDetail.title || '系统简介' }}
+                </h2>
+                <span class="subtitle" style="font-size: 18px; color: #666;" v-if="systemInfoDetail.subtitle">{{ systemInfoDetail.subtitle }}</span>
+            </div>
+            
+            <div class="intro-content-wrapper">
+                <div class="intro-images" v-if="systemInfoDetail.picture1 || systemInfoDetail.picture2 || systemInfoDetail.picture3">
+                    <div class="img-item" v-if="systemInfoDetail.picture1">
+                        <img :src="systemInfoDetail.picture1.startsWith('http') ? systemInfoDetail.picture1.split(',')[0] : $config.url + systemInfoDetail.picture1.split(',')[0]" class="intro-img" />
+                    </div>
+                    <div class="img-item" v-if="systemInfoDetail.picture2">
+                        <img :src="systemInfoDetail.picture2.startsWith('http') ? systemInfoDetail.picture2.split(',')[0] : $config.url + systemInfoDetail.picture2.split(',')[0]" class="intro-img" />
+                    </div>
+                    <div class="img-item" v-if="systemInfoDetail.picture3">
+                        <img :src="systemInfoDetail.picture3.startsWith('http') ? systemInfoDetail.picture3.split(',')[0] : $config.url + systemInfoDetail.picture3.split(',')[0]" class="intro-img" />
+                    </div>
+                </div>
+                
+                <div class="intro-right">
+                    <div class="rich-text-content elder-text" v-html="systemInfoDetail.content"></div>
+                </div>
+            </div>
+        </div>
+
 </template>
 
 <script setup>
@@ -219,747 +235,230 @@
 		getNewsList()
 	}
 	init()
+
+// ================= 新增的金刚区和推荐区逻辑 =================
+	const recommendList = ref([])
+	
+	const getSmartRecommend = () => {
+		let account = localStorage.getItem('frontSessionTable') === 'laoren' ? localStorage.getItem('frontName') || localStorage.getItem('adminName') : '';
+		if (!account) return; 
+
+		context?.$http({
+			url: `caipinxinxi/smartRecommend?laorenzhanghao=${account}`,
+			method: "get"
+		}).then(res => {
+			if (res.data && res.data.code === 0) {
+				recommendList.value = res.data.data;
+			}
+		});
+	}
+	
+	const quickNavigate = (path) => {
+		let token = localStorage.getItem('frontToken');
+		if (!token) {
+			context?.$message.error("请先登录系统！");
+			router.push('/login');
+			return;
+		}
+		router.push(path);
+	}
+	
+	const scrollToRecommend = () => {
+		let target = document.getElementById('smart-recommend');
+		if (target) {
+			target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		} else {
+			let token = localStorage.getItem('frontToken');
+			if (!token) {
+				context?.$message.warning("请先登录系统！");
+			} else {
+				context?.$message.warning("请先完成一次健康打卡，系统才能为您推荐！");
+			}
+		}
+	}
+	// 页面初始化时调用推荐
+	getSmartRecommend();
+	// ==========================================================
+
 </script>
 
-<style lang="scss">
-	.home_box {
-	}
+<style lang="scss" scoped>
+.modern-home-page {
+    width: 1200px;
+    margin: 30px auto;
+    font-family: "Microsoft YaHei", sans-serif;
+}
 
-	.aboutUs_view {
-		.aboutUs_title {
-		}
-
-		.aboutUs_subtitle {
-		}
-		.aboutUs_content {
-		}
-		.aboutUs_img_box {
-			.aboutUs_img1 {
-			}
-
-			.aboutUs_img2 {
-			}
-
-			.aboutUs_img3 {
-			}
-		}
-		// 自定义盒子一
-		.aboutUs_default1 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子二
-		.aboutUs_default2 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子三
-		.aboutUs_default3 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子四
-		.aboutUs_default4 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-	}
-	.systemInfo_view {
-		.systemInfo_title {
-		}
-
-		.systemInfo_subtitle {
-		}
-		.systemInfo_content {
-		}
-		.systemInfo_img_box {
-			.systemInfo_img1 {
-			}
-
-			.systemInfo_img2 {
-			}
-
-			.systemInfo_img3 {
-			}
-		}
-		// 自定义盒子一
-		.systemInfo_default1 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子二
-		.systemInfo_default2 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子三
-		.systemInfo_default3 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-		// 自定义盒子四
-		.systemInfo_default4 {
-			margin: 0 auto;
-			background: #d5a1b1;
-			display: none;
-			width: 100px;
-			height: 100px;
-		}
-	}
-	// 推荐
-	.recomList_view {
-		.recomList_title {
-		}
-		// list
-		.recommend_list_two {
-			.recommend_item {
-				.recommend_img_box {
-					.recommend_img {
-					}
-				}
-				.recommend_content {
-					.recommend_title {
-					}
-					.recommend_price {
-					}
-					.recommend_bottom {
-						.recommend_like {
-							.like_icon {
-							}
-							.num {
-							}
-						}
-						.recommend_collect {
-							.el-icon {
-							}
-							.num {
-							}
-						}
-						.recommend_clickNum {
-							.el-icon {
-							}
-							.num {
-							}
-						}
-					}
-				}
-			}
-		}
-		// list
-		// animation
-		.animation_box {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box:hover {
-		}
-		.animation_box img {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box img:hover {
-		}
-		// animation
-		// 更多
-		.recommend_more_view {
-			.recommend_more_text {
-			}
-		}
-	}
-	// 推荐
-	// 新闻资讯
-	.newsList_view {
-
-		.newsList_title {
-		}
-		// list
-		.news_list_one {
-			display: flex;
-			flex-wrap: wrap;
-			.news_item {
-				box-shadow: 0 4px 6px rgba(0,0,0,.3);
-				margin: 0 10px 10px;
-				background: #fff;
-				display: flex;
-				width: calc(33% - 20px);
-				align-items: center;
-				.news_img_box {
-					width: 40%;
-					font-size: 0;
-					.news_img {
-						object-fit: cover;
-						width: 100%;
-						height: 200px;
-					}
-				}
-				.news_content {
-					margin: 0 0 0 20px;
-					width: calc(60% - 20px);
-					.news_title {
-						font-weight: bold;
-						font-size: 20px;
-					}
-					.news_text {
-						font-size: 14px;
-						line-height: 1.5;
-					}
-					.news_time {
-						color: #999;
-						width: 100%;
-						text-align: right;
-					}
-				}
-			}
-		}
-		// list
-		// animation
-		.animation_box {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box:hover {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			-webkit-perspective: 1000px;
-			perspective: 1000px;
-			transition: 0.3s;
-		}
-		.animation_box img {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box img:hover {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			-webkit-perspective: 1000px;
-			perspective: 1000px;
-			transition: 0.3s;
-		}
-		// animation
-		// 更多
-		.news_more_view {
-			.news_more_text {
-			}
-			.el-icon {
-			}
-		}
-	}
-	// 新闻资讯
-	// 首页展示
-	.homeList_view {
-
-		.homeList_title {
-		}
-		// list
-		// list
-		// animation
-		.animation_box {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box:hover {
-		}
-		.animation_box img {
-			transform: rotate(0deg) scale(1) skew(0deg, 0deg) translate3d(0px, 0px, 0px);
-			z-index: initial;
-		}
-		.animation_box img:hover {
-		}
-		// animation
-		// 更多
-		.homeList_more_view {
-			.homeList_more_text {
-			}
-		}
-	}
-	// 首页展示
-</style>
-<style>
-.home_box {
+/* 现代金刚区 */
+.shortcut-area {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 50px;
 }
-
-.homeList_view {
-    order: 2;
-}
-
-.aboutUs_view {
-    order: 5;
-}
-
-.recomList_view {
-    order: 3;
-}
-
-.friendLink {
-    order: 4;
-}
-
-.newsList_view {
-    order: 6;
-}
-
-.systemInfo_view {
-    order: 8;
-}
-
-.onlineMessage {
-    order: 7;
-}
-/* 总盒子 */
-.aboutUs_view {
-    width: 100%;
-    padding: 30px calc(50% - 500px);
-    background-size: 100% 100%;
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: url(http://clfile.zggen.cn/20250103/29f03471183a4fb5a147f0cea0272387.webp);
-    background-size: 100% 100%;
-}
-/* 标题 */
-.aboutUs_view .aboutUs_title{
-    width: 100%;
-    text-align: center;
-}
-/* 副标题 */
-.aboutUs_view .aboutUs_subtitle{
-    width: 100%;
-    display: none;
-    font-size: 16px;
-    color: var(--theme);
-    text-align: center;
-}
-/* 内容 */
-.aboutUs_view .aboutUs_content{
-    padding: 0px;
-    border: 0px solid rgb(238, 238, 238);
-    font-size: 16px;
-    color: #333;
-    line-height: 2.5em;
-    text-indent: 2em;
-    padding: 20px;
-    align-items: center;
-    display: flex;
+.shortcut-item {
     flex: 1;
-}
-.aboutUs_view .aboutUs_img_box{
-    margin: 0;
-    align-items: center;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 360px;
-    grid-gap: 20px;
-}
-/* 自定义盒子 */
-.aboutUs_view .aboutUs_default1{
-    width: 100px;
-    height: 100px;
-    background: rgb(213, 161, 177);
-    margin: 0px auto;
-    display: none;
-}
-
-
-.aboutUs_view .more {
-    border: var(--theme);
-    width: 149px;
-    height: 43px;
-    background: rgba(24, 88, 232, 0.10);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--theme);
-    border-radius: 6px;
-}
-
-.aboutUs_view .aboutUs_img_box img {
-    height: 200px;
-    object-fit: cover;
-    width: 100%;
-}
-
-.aboutUs_view .aboutUs_title span {color: var(--theme);text-align: center;font-size: 24px;padding: 10px 40px;border: 2px solid rgba(66, 66, 66, 1);display: inline-block;margin-bottom: 30px;position: relative;}
-
-.aboutUs_view .aboutUs_title span:before {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    left: -66px;
-    top: 50%;
-}
-.aboutUs_view .aboutUs_title span:after {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    right: -66px;
-    top: 50%;
-}
-
-img.aboutUs_img3 {
-    width: 100%;
-    grid-column: 1/-1;
-}
-/* 总盒子 */
-.systemInfo_view {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    padding: 30px calc(50% - 600px);
-    position: relative;
-    min-height: 500px;
-    background: url(http://clfile.zggen.cn/20250103/29f03471183a4fb5a147f0cea0272387.webp);
-}
-/* 标题 */
-.systemInfo_view .systemInfo_title{text-align: center;width: 100%;}
-/* 副标题 */
-.systemInfo_view .systemInfo_subtitle{
-    width: 100%;
-    display: block;
-    font-size: 16px;
-    color: rgb(153, 153, 153);
+    border-radius: 16px;
+    padding: 30px 20px;
     text-align: center;
-    line-height: 40px;
-    display: none;
-}
-/* 内容 */
-.systemInfo_view .systemInfo_content{
-    border: 0px solid rgb(238, 238, 238);
-    font-size: 16px;
-    color: rgb(102, 102, 102);
-    line-height: 2.5em;
-    text-indent: 2em;
-    display: flex;
-    /* align-items: center; */
-    /* background: #fff; */
-    padding: 20px;
-    order: 4;
-    /* width: 500px; */
-    flex: 1;
-}
-/* 图片 样式一 盒子 */
-.systemInfo_view .systemInfo_img_box{
-    padding: 0px;
-    display: grid;
-    grid-gap: 20px;
-    height: calc(100% - 30px);
-    width: 400px;
-    grid-template-columns: 1fr 1fr;
-}
-.systemInfo_view .systemInfo_img_box .systemInfo_img1{
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 0;
-    margin-top: auto;
-}
-.systemInfo_view .systemInfo_img_box .systemInfo_img2{
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 0;
-    margin-top: auto;
-}
-.systemInfo_view .systemInfo_img_box .systemInfo_img3{
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    margin-top: auto;
-    border-radius: 0;
-}
-
-
-.systemInfo_view img.systemInfo_img {
-    width: 500px;
-    height: 400px;
-    position: relative;
-}
-
-.systemInfo_view .systemInfo_title span {color: var(--theme);text-align: center;font-size: 24px;padding: 10px 40px;border: 2px solid rgba(66, 66, 66, 1);display: inline-block;margin-bottom: 30px;position: relative;}
-
-.systemInfo_view .systemInfo_title span:before {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    left: -66px;
-    top: 50%;
-}
-.systemInfo_view .systemInfo_title span:after {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    right: -66px;
-    top: 50%;
-}
-
-img.systemInfo_img3 {
-    grid-column: 1/-1;
-}
-.recomList_view {
-    padding: 30px 0;
-    position: relative;
-    /* background: var(--theme); */
-    text-align: center;
-    background: rgba(228, 228, 228, 1);
-}
-
-.recomList_view .recomList_title {
-    color: var(--theme);
-    text-align: center;
-    font-size: 24px;
-    padding: 10px 40px;
-    border: 2px solid rgba(66, 66, 66, 1);
-    display: inline-block;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-.recomList_view .recomList_title:before {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    left: -66px;
-    top: 50%;
-}
-.recomList_view .recomList_title:after {
-    position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    right: -66px;
-    top: 50%;
-}
-
-.recomList_view .recommend_item {
-    padding: 15px;
-    width: 100%;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
     background: #fff;
-    border-radius: 4px;
-}
-
-.recomList_view img.recommend_img {
-    height: 14vw;
-    width: 100%;
-    object-fit: cover;
-}
-
-.recomList_view .recommend_title {
-    padding: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.recomList_view .recommend_price {
-    color: rgba(150, 0, 0, 1);
-    padding: 6px;
-}
-
-.recomList_view .recommend_bottom {
-    display: flex;
-    justify-content: space-around;
-    padding: 12px;
-}
-
-.recomList_view .recommend_like {
-    display: flex;
-    color: var(--theme);
-}
-
-.recomList_view .recommend_collect {
-    display: flex;
-    color: rgba(95, 179, 168, 1);
-}
-
-.recomList_view .recommend_clickNum {
-    color: rgba(68, 130, 180, 1);
-    display: flex;
-}
-
-.recomList_view .recommend_more_view {
-    color: #fff;
-    background: var(--theme);
-    display: inline-block;
-    padding: 6px 20px;
-    margin-top: 20px;
-}
-/* 总盒子 */
-.newsList_view {
-    width: 100%;
-    margin:0;
-    padding: 60px 0;
-    background: url(http://clfile.zggen.cn/20250103/4ea4277d4feb4995a0e542d8ed7b4425.webp);
-    overflow: hidden;
-    position:relative;
-    display:block;
-}
-/* 自定义 start*/
-.newsList_view .ntitle{
-    width: 1200px;
-    margin:0 auto;
-    background:url(http://clfile.zggen.cn/20241016/d6fe1c51711a4cb5a8c5256a338f33fc.png) no-repeat center bottom;
-    text-align: center;
-    padding: 0 0 20px;
-}
-.newsList_view .ntitle .n1{
-    color: var(--theme);
-    text-align: center;
-    font-size: 24px;
-    padding: 10px 40px;
-    border: 2px solid rgba(66, 66, 66, 1);
-    display: inline-block;
-    margin-bottom: 30px;
     position: relative;
+    overflow: hidden;
+    z-index: 1;
 }
-.newsList_view .ntitle .n1:before{
-    position: absolute;
+.shortcut-item::before {
     content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    left: -66px;
-    top: 50%;
-}
-.newsList_view .ntitle .n1:after{
     position: absolute;
-    content: '';
-    width: 80px;
-    height: 2px;
-    background: var(--theme);
-    right: -66px;
-    top: 50%;
+    top: 0; left: 0; right: 0; height: 100%;
+    z-index: -1;
+    opacity: 0.05;
+    transition: opacity 0.3s;
 }
-.newsList_view .nlist{
-    width: 1200px;
-    margin:30px auto 0;
+.shortcut-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.1);
 }
-.newsList_view .nlist ul{
-    margin:0;
-    padding:0;
+.shortcut-item:hover::before { opacity: 0.15; }
+
+.health-item::before { background: #E6A23C; }
+.health-item .icon-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); color: #E6A23C; border: 2px solid #E6A23C; }
+
+.doc-item::before { background: #67C23A; }
+.doc-item .icon-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); color: #67C23A; border: 2px solid #67C23A; }
+
+.food-item::before { background: #F56C6C; }
+.food-item .icon-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); color: #F56C6C; border: 2px solid #F56C6C; }
+
+.feedback-item::before { background: #409EFF; }
+.feedback-item .icon-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); color: #409EFF; border: 2px solid #409EFF; }
+
+.icon-box {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    justify-content: space-between;
+    font-size: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.newsList_view .nlist ul li{
-    width: 48%;
-    text-align: left;
-    background: none;
-    border: 0px dashed #aaa;
-    cursor:pointer;
+.shortcut-text { display: block; font-size: 20px; font-weight: bold; color: #333; margin-bottom: 8px; }
+.shortcut-desc { margin: 0; font-size: 13px; color: #909399; }
+
+/* 智能推荐专区 */
+.recommend-section {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px 40px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+    margin-bottom: 50px;
+}
+.section-header { margin-bottom: 30px; border-bottom: 1px solid #f0f2f5; padding-bottom: 15px; }
+.title-left { display: flex; align-items: center; }
+.section-header .title { margin: 0; font-size: 24px; font-weight: bold; color: #303133; letter-spacing: 1px; }
+.section-header .subtitle { margin: 10px 0 0 38px; color: #909399; font-size: 15px; }
+
+/* 卡片通用样式 */
+.food-card { border-radius: 16px; border: none; background: #fcfdfe; cursor: pointer; transition: all 0.3s; :deep(.el-card__body) { padding: 0; } }
+.food-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(103, 194, 58, 0.15) !important; }
+.food-img-wrapper { width: 100%; height: 190px; overflow: hidden; }
+.food-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.food-card:hover .food-img { transform: scale(1.06); }
+.food-info { padding: 20px; }
+.food-name { margin: 0 0 10px 0; font-size: 18px; color: #333; font-weight: bold; }
+.food-tags { margin-bottom: 15px; }
+.food-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #ebeef5; padding-top: 15px; }
+.food-price { color: #F56C6C; font-size: 22px; font-weight: bold; }
+
+/* ================= 底部新增模块样式 ================= */
+.home-module { margin-bottom: 50px; }
+.module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px; }
+.module-title { font-size: 24px; font-weight: bold; color: #333; margin: 0; letter-spacing: 1px; }
+
+/* 热门菜品卡片 */
+.hot-food-card { border-radius: 12px; border: none; cursor: pointer; transition: all 0.3s; :deep(.el-card__body) { padding: 0; } }
+.hot-food-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important; }
+.img-zoom { width: 100%; height: 180px; overflow: hidden; background: #f8f9fa; }
+.hot-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.hot-food-card:hover .hot-img { transform: scale(1.05); }
+.hot-info { padding: 15px 20px; }
+.hot-name { font-size: 18px; margin: 0 0 10px 0; color: #303133; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;}
+.hot-bottom { display: flex; justify-content: space-between; align-items: center; }
+.hot-price { color: #F56C6C; font-size: 20px; font-weight: bold; }
+.hot-sales { color: #909399; font-size: 13px; }
+
+/* 资讯卡片 (横向图文) */
+.news-card { display: flex; background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: all 0.3s; border: 1px solid transparent; }
+.news-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: #e4e7ed; transform: translateY(-3px); }
+.news-img { width: 140px; height: 100px; border-radius: 8px; object-fit: cover; margin-right: 20px; border: 1px solid #f0f2f5;}
+.news-content { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.news-title { margin: 0 0 8px 0; font-size: 17px; color: #333; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.news-desc { margin: 0; font-size: 14px; color: #666; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.news-time { font-size: 13px; color: #999; margin-top: 8px; }
+
+/* 系统简介专区样式（适老化大字版 + 三图排版） */
+.system-intro-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 50px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    margin-bottom: 60px;
+}
+.intro-content-wrapper {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column; /* 改为上下排列，给文字留出更大空间 */
+    gap: 30px;
+}
+.intro-images {
+    display: flex;
+    gap: 20px;
     justify-content: space-between;
-    margin:0 0 30px;
+    width: 100%;
 }
-.newsList_view .nlist ul li:last-child{
-    border-bottom: none;
+.img-item {
+    flex: 1;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
 }
-.newsList_view .nlist ul li .imgbox{
-    width: 100px;
-    height: 100px;
-}
-.newsList_view .nlist ul li .imgbox img{
+.intro-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.4s;
+}
+.intro-img:hover {
+    transform: scale(1.05);
+}
+.intro-right {
+    width: 100%;
+    background: #fdfaf4; /* 给文字加一个温馨的暖色背景 */
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #f2e6d9;
 }
 
-.newsList_view .nlist ul li .tim {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100px;
-    box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.3);
-    height: 100px;
+/* 核心：适老化大字体排版 */
+.elder-text {
+    font-size: 20px !important; /* 超大号字体，老花眼也能看清 */
+    line-height: 2.2 !important; /* 更宽的行距，防止串行 */
+    color: #222; /* 加深文字颜色，提高对比度 */
+    letter-spacing: 1.5px; /* 增加字间距 */
 }
-.newsList_view .nlist ul li .tim .t1 {
-    width: 100%;
-    text-align: center;
-    font-size: 48px;
-    color: #ddd;
+.elder-text :deep(p) {
+    margin-bottom: 1em;
+    text-indent: 2em; /* 首行缩进，符合传统阅读习惯 */
 }
-.newsList_view .nlist ul li .tim .t2 {
-    width: 100%;
-    text-align: center;
-    line-height: 30px;
-    color: #ddd;
-}
-.newsList_view .nlist ul li .infobox {
-    width: calc(100% - 110px);
-    flex: 1;
-    padding: 0 20px;
-}
-.newsList_view .nlist ul li .infobox .nam {
-    color: #000;
-    font-size: 16px;
-    font-weight: 600;
-}
-.newsList_view .nlist ul li .infobox .info {
-    color: #888;
-    font-size: 15px;
-    line-height: 24px;
-    height:48px;
-    overflow:hidden;
-    margin-top: 5px;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-}
-/* 更多 */
-.newsList_view .nmore{
-    width: 120px;
-    margin: 10px auto;
+.elder-text :deep(img) {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 20px 0;
     display: block;
-    color: #fff;
-    border:1px solid #ffffff50;
-    padding:10px;
-    clear:both;
-    text-align:center;
-    background: var(--theme);
-}
-/* 自定义 end*/
-
-
-.newsList_view .nlist ul li:hover {
-    box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.3);
 }
 
-.newsList_view .nlist ul li:hover .nam {
-    color: var(--theme);
-}
 </style>

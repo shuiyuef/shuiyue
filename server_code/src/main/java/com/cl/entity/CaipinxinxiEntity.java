@@ -24,9 +24,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 /**
  * 菜品信息
  * 数据库通用操作实体类（普通增删改查）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("caipinxinxi")
 public class CaipinxinxiEntity<T> implements Serializable {

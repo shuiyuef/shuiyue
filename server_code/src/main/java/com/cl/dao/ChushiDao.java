@@ -13,10 +13,6 @@ import com.cl.entity.view.ChushiView;
 
 /**
  * 厨师
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface ChushiDao extends BaseMapper<ChushiEntity> {
 	

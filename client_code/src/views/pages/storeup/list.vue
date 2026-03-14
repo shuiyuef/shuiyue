@@ -1,260 +1,168 @@
 <template>
-	<div class="list-page" :style='{}'>
-        <div class="breadcrumb-wrapper" style="width: 100%;">
-            <div class="bread_view">
-                <el-breadcrumb separator="Ξ" class="breadcrumb">
-                    <el-breadcrumb-item class="second_breadcrumb" :to="{ path: `/index/${sessionTable}Center` }">个人中心</el-breadcrumb-item>
-                    <el-breadcrumb-item class="second_breadcrumb">{{formName}}</el-breadcrumb-item>
+	<div class="list-page modern-storeup-page">
+        <el-card shadow="hover" class="breadcrumb-card">
+            <div class="breadcrumb-wrapper">
+                <el-breadcrumb separator="/" class="breadcrumb">
+                    <el-breadcrumb-item :to="{ path: `/index/${sessionTable}Center` }">个人中心</el-breadcrumb-item>
+                    <el-breadcrumb-item>我的收藏夹</el-breadcrumb-item>
                 </el-breadcrumb>
+                <div class="back_view" v-if="centerType">
+                    <el-button class="back_btn" @click="backClick" icon="el-icon-back" round size="small">返回</el-button>
+                </div>
             </div>
-            <div class="back_view" v-if="centerType">
-                <el-button class="back_btn" @click="backClick" type="primary">返回</el-button>
-            </div>
-        </div>
-		<el-form :inline="true" :model="searchQuery" class="list_search">
-			<div class="search_view">
-				<div class="search_label">
-					名称：
-				</div>
-				<div class="search_box">
-					<el-input class="search_inp" v-model="searchQuery.name" placeholder="名称" style="100%"
-						size="small" clearable>
-					</el-input>
-				</div>
-			</div>
-			<div class="search_btn_view">
-				<el-button class="search_btn" type="primary" @click="searchClick">搜索</el-button>
-			</div>
-		</el-form>
-		<div class="page_list">
-			<div class="data_box">
-				<div class="data_view">
-					<div class="data_item" v-for="(item,index) in list" :key="index" @click="detailClick(item)">
-						<div class="data_img_box" v-if="item.picture && item.picture.substr(0,4)=='http'">
-							<img class="data_img" :src="item.picture" >
-						</div>
-						<div class="data_img_box" v-else>
-							<img class="data_img" :src="item.picture?$config.url + item.picture.split(',')[0]:''"
-								>
-						</div>
-						<div class="data_content">
-							<div class="data_title">{{item.name}}</div>
-						</div>
-					</div>
-				</div>
-				<el-pagination
-					background 
-					:layout="layouts.join(',')"
-					:total="total" 
-					:page-size="listQuery.limit"
-                    v-model:current-page="listQuery.page"
-					prev-text="上一页"
-					next-text="下一页"
-					:hide-on-single-page="false"
-					:style='{}'
-					@size-change="sizeChange"
-					@current-change="currentChange"/>
-			</div>
+        </el-card>
+
+        <el-card shadow="hover" class="search-card">
+            <el-form :inline="true" :model="searchQuery" class="list_search">
+                <div class="search_view">
+                    <el-input class="search_inp" v-model="searchQuery.name" placeholder="搜索我收藏的商品..." clearable prefix-icon="el-icon-search"></el-input>
+                </div>
+                <div class="search_btn_view">
+                    <el-button type="primary" @click="searchClick" round icon="el-icon-search">检索</el-button>
+                </div>
+            </el-form>
+        </el-card>
+
+        <div class="storeup-grid" v-loading="listLoading">
+            <el-row :gutter="24" v-if="list.length > 0">
+                <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(item, index) in list" :key="index" style="margin-bottom: 24px;">
+                    <el-card class="storeup-card" shadow="hover" :body-style="{ padding: '0px' }" @click="toDetailClick(item)">
+                        <div class="img-wrapper">
+                            <img v-if="item.picture" :src="item.picture.substring(0,4)=='http' ? item.picture.split(',')[0] : $config.url + item.picture.split(',')[0]" class="item-img" />
+                            <div v-else class="no-img">暂无图片</div>
+                            
+                            <div class="heart-badge">
+                                <i class="el-icon-star-on"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="item-content">
+                            <h3 class="item-title">{{item.name}}</h3>
+                            <div class="item-footer" @click.stop>
+                                <span class="time-text">收藏于系统</span>
+                                <el-button type="danger" plain round size="small" icon="el-icon-delete" @click="delClick(item.id)">取消收藏</el-button>
+                            </div>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            <el-empty v-else description="您的收藏夹空空如也，快去逛逛吧" :image-size="120"></el-empty>
 		</div>
+
+        <div class="pagination-wrapper">
+            <el-pagination background :layout="layouts.join(',')" :total="total" :page-size="listQuery.limit" v-model:current-page="listQuery.page" @size-change="sizeChange" @current-change="currentChange" />
+        </div>
 	</div>
 </template>
 
 <script setup>
-	import {
-		ref,
-		getCurrentInstance,
-		nextTick,
-	} from 'vue';
-	import {
-		useRoute,
-		useRouter
-	} from 'vue-router';
+	import { ref, getCurrentInstance } from 'vue';
+	import { ElMessageBox } from 'element-plus'
+	import { useRoute, useRouter } from 'vue-router'
+
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	const router = useRouter()
 	const route = useRoute()
-    const sessionTable = localStorage.getItem('frontSessionTable')
-	//基础信息
 	const tableName = 'storeup'
-	const formName = ref('')
+	const sessionTable = context?.$toolUtil.storageGet('frontSessionTable')
+
 	const list = ref([])
+	const listLoading = ref(false)
 	const listQuery = ref({
 		page: 1,
-		limit: 20,
-        sort: 'id',
-        order: 'desc'
+		limit: 12,
+		userid: context?.$toolUtil.storageGet('userid')
 	})
-	const total = ref(0)
-	const listLoading = ref(false)
-	//权限验证
-	const btnAuth = (e, a) => {
-		return context?.$toolUtil.isAuth(e, a)
-	}
-	//判断是否从个人中心跳转
-	const centerType = ref(false)
-	//返回
-	const backClick = () => {
-		router.push(`/index/${sessionTable}Center`)
-	}
-	const init = () => {
-		if (route.query.centerType) {
-			centerType.value = true
-		}
-
-        if(route.query.type=='1'){
-            formName.value = '我的收藏'
-        }
-		getList()
-	}
-	//搜索
 	const searchQuery = ref({})
+	const total = ref(0)
+	const layouts = ref(["total", "prev", "pager", "next"])
 
-	const searchClick = () => {
-		listQuery.value.page = 1
-		getList()
-	}
-	//分页
-	const layouts = ref(["total","prev","pager","next","sizes","jumper"])
-	const sizeChange = (size) => {
-		listQuery.value.limit = size
-		getList()
-	}
-	const currentChange = (page) => {
-		listQuery.value.page = page
-		getList()
-	}
-	//分页
-	//列表
+	const searchClick = () => { listQuery.value.page = 1; getList(); }
+	const sizeChange = (size) => { listQuery.value.limit = size; getList(); }
+	const currentChange = (page) => { listQuery.value.page = page; getList(); }
+
 	const getList = () => {
 		listLoading.value = true
 		let params = JSON.parse(JSON.stringify(listQuery.value))
-		if (searchQuery.value.name && searchQuery.value.name != '') {
+		if (searchQuery.value.name) {
 			params.name = '%' + searchQuery.value.name + '%'
 		}
-		if (route.query.type) {
-			params.type = route.query.type
-		}
 		context?.$http({
-			url: `${tableName}/page`,
+			url: `storeup/list`,
 			method: 'get',
 			params: params
 		}).then(res => {
 			listLoading.value = false
 			list.value = res.data.data.list
-			total.value = Number(res.data.data.total)
+			total.value = res.data.data.total
 		})
 	}
-	const detailClick = (item) => {
-        if(item.tablename == 'news'){
-            router.push(`newsList?id=${item.refid}`)
-            return
+
+	const delClick = (id = null) => {
+		ElMessageBox.confirm(`确定要取消收藏该内容吗？`, '提示', {
+			confirmButtonText: '确定取消',
+			cancelButtonText: '点错了',
+			type: 'warning',
+		}).then(() => {
+			context?.$http({
+				url: `storeup/delete`,
+				method: 'post',
+				data: [id]
+			}).then(res => {
+				context?.$toolUtil.message('已取消收藏', 'success', () => { getList() })
+			})
+		}).catch(() => {})
+	}
+
+	const centerType = ref(false)
+	const backClick = () => {
+		router.push(`/index/${context?.$toolUtil.storageGet('frontSessionTable')}Center`)
+	}
+
+    // 跳转到原商品详情页
+	const toDetailClick = (item) => {
+        if(item.tablename === 'news') {
+            router.push(`/index/newsDetail?id=${item.refid}`)
+        } else {
+            router.push(`/index/${item.tablename}Detail?id=${item.refid}`)
         }
-		router.push(`${item.tablename}Detail?id=${item.refid}`)
+	}
+
+	const init = () => {
+		if (route.query.centerType) { centerType.value = true }
+		getList()
 	}
 	init()
 </script>
+
 <style lang="scss" scoped>
-	// 返回盒子
-	.back_view {
-		// 返回按钮
-		.back_btn {
-		}
-		// 返回按钮-悬浮
-		.back_btn:hover {
-		}
-	}
+.modern-storeup-page { width: 1200px; margin: 0 auto; padding: 30px 0 60px; }
+.breadcrumb-card { border-radius: 12px; border: none; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); :deep(.el-card__body) { padding: 18px 25px; } }
+.breadcrumb-wrapper { display: flex; justify-content: space-between; align-items: center; }
 
-	//搜索
-	.list_search {
-		.search_view {
-			.search_label {
-			}
-			.search_box {
-				// 输入框
-				:deep(.search_inp) {
+/* 搜索卡片 */
+.search-card { border-radius: 12px; border: none; margin-bottom: 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); :deep(.el-card__body) { padding: 20px 25px; } }
+.list_search { display: flex; align-items: center; margin: 0; }
+.search_view { flex: 1; margin-right: 20px; }
+:deep(.el-input__inner) { border-radius: 20px !important; background: #f5f7fa !important; border: 1px solid #ebeef5 !important; height: 42px; line-height: 42px; transition: all 0.3s; }
+:deep(.el-input__inner):focus { background: #fff !important; border-color: #4A90E2 !important; box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important; }
 
-				}
-			}
-		}
-		.search_btn_view {
-			// 搜索按钮
-			.search_btn {
-			}
-			// 搜索按钮-悬浮
-			.search_btn:hover {
-			}
-		}
-	}
-	// 数据盒子
-	.page_list {
-		//列表
-		.data_box {
-			.data_view {
-				.data_item {
-					// 图片盒子
-					.data_img_box {
-						// 图片
-						.data_img {
-						}
-					}
-					// 内容盒子
-					.data_content {
-						// 标题
-						.data_title {
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	// 分页器
-	.el-pagination {
-		// 总页码
-		:deep(.el-pagination__total) {
-		}
-		// 上一页
-		:deep(.btn-prev) {
-		}
-		// 下一页
-		:deep(.btn-next) {
-		}
-		// 上一页禁用
-		:deep(.btn-prev:disabled) {
-		}
-		// 下一页禁用
-		:deep(.btn-next:disabled) {
-		}
-		// 页码
-		:deep(.el-pager) {
-			// 数字
-			.number {
-			}
-			// 数字悬浮
-			.number:hover {
-			}
-			// 选中
-			.number.is-active {
-			}
-		}
-		// sizes
-		:deep(.el-pagination__sizes) {
-			.el-select {
-				//去掉默认样式
-				.select-trigger{
-					height: 100%;
-					.el-input{
-						height: 100%;
+/* 收藏卡片 */
+.storeup-card { border-radius: 16px; border: none; cursor: pointer; transition: all 0.3s; position: relative; }
+.storeup-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.12) !important; }
+.img-wrapper { width: 100%; height: 200px; overflow: hidden; position: relative; background: #f8f9fa; }
+.item-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+.storeup-card:hover .item-img { transform: scale(1.08); }
+.no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #999; }
 
-					}
-				}
-			}
-		}
-		// 跳页
-		:deep(.el-pagination__jump) {
-			// 输入框
-			.el-input {
+/* 悬浮红心 */
+.heart-badge { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #F56C6C; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); backdrop-filter: blur(4px); }
 
-			}
-		}
-	}
+/* 卡片内容 */
+.item-content { padding: 20px; }
+.item-title { margin: 0 0 15px 0; font-size: 18px; color: #303133; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #ebeef5; padding-top: 15px; }
+.time-text { font-size: 13px; color: #909399; }
+
+.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
 </style>

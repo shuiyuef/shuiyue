@@ -15,9 +15,6 @@ import com.cl.utils.EncryptUtil;
  * 菜品信息评论表
  * 后端返回视图实体辅助类   
  * （通常后端关联的表或者自定义的字段需要返回使用）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("discusscaipinxinxi")
 public class DiscusscaipinxinxiView  extends DiscusscaipinxinxiEntity implements Serializable {

@@ -366,4 +366,22 @@
 			justify-content: center;
 		}
 	}
+
+	/* 让轮播图拥有现代化圆角与投影 */
+.swiper {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+.slide img {
+    border-radius: 16px;
+}
+:deep(.swiper-pagination-bullet-active) {
+    background: var(--theme) !important;
+    width: 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
 </style>

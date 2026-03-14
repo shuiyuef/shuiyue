@@ -13,10 +13,6 @@ import com.cl.entity.view.LaorenView;
 
 /**
  * 老人
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface LaorenDao extends BaseMapper<LaorenEntity> {
 	

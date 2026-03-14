@@ -13,10 +13,6 @@ import com.cl.entity.view.OrdersView;
 
 /**
  * 商品订单
- * 
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 public interface OrdersDao extends BaseMapper<OrdersEntity> {
 	

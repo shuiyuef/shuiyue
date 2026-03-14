@@ -15,9 +15,6 @@ import com.cl.utils.EncryptUtil;
  * 我的收藏
  * 后端返回视图实体辅助类   
  * （通常后端关联的表或者自定义的字段需要返回使用）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("storeup")
 public class StoreupView  extends StoreupEntity implements Serializable {

@@ -13,7 +13,6 @@
 			}, delay);
 		}
 	}
-
 	const _ResizeObserver = window.ResizeObserver;
 	window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
 		constructor(callback) {
@@ -23,33 +22,40 @@
 	}
 </script>
 <style lang="scss">
+	/* ================= 核心亮度：全局现代 UI 变量 ================= */
+	:root {
+		--theme: #4A90E2; /* 覆盖旧版本的刺眼主题色 */
+		--el-color-primary: #4A90E2; /* 沉稳的适老蓝 */
+		--el-color-success: #67C23A; /* 健康绿 */
+		--el-color-warning: #E6A23C; /* 活力橘 */
+		--el-color-danger:  #F56C6C; /* 警示红 */
+		--el-border-radius-base: 8px; /* 全局圆角 */
+		--el-border-radius-round: 20px;
+	}
+
 	body {
 		margin: 0;
+		background-color: #F4F7F9; /* 极其柔和的页面底色，让白色卡片更凸显 */
+		font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+		color: #333;
 	}
 	* {
 		box-sizing: border-box;
 	}
-	.section_title {
+
+	/* 现代化的优美滚动条 */
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
 	}
-
-	#app {
-		font-family: Avenir, Helvetica, Arial, sans-serif;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-		// text-align: center;
-		color: #2c3e50;
+	::-webkit-scrollbar-thumb {
+		background: #c0c4cc;
+		border-radius: 4px;
 	}
-
-	nav {
-		padding: 30px;
-
-		a {
-			font-weight: bold;
-			color: #2c3e50;
-
-			&.router-link-exact-active {
-				color: #42b983;
-			}
-		}
+	::-webkit-scrollbar-thumb:hover {
+		background: #909399;
+	}
+	::-webkit-scrollbar-track {
+		background: #f1f3f5;
 	}
 </style>

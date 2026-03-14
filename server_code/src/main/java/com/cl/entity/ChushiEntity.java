@@ -20,32 +20,25 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 
-
 /**
  * 厨师
  * 数据库通用操作实体类（普通增删改查）
- * @author 
- * @email 
- * @date 2025-04-15 23:30:50
  */
 @TableName("chushi")
 public class ChushiEntity<T> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-
 	public ChushiEntity() {
-		
 	}
-	
+
 	public ChushiEntity(T t) {
 		try {
 			BeanUtils.copyProperties(this, t);
 		} catch (IllegalAccessException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * 主键id
 	 */
@@ -54,39 +47,32 @@ public class ChushiEntity<T> implements Serializable {
 	/**
 	 * 工号
 	 */
-					
 	private String gonghao;
-	
 	/**
 	 * 密码
 	 */
-					
 	private String mima;
-	
 	/**
 	 * 厨师姓名
 	 */
-					
 	private String chushixingming;
-	
 	/**
 	 * 性别
 	 */
-					
 	private String xingbie;
-	
 	/**
 	 * 头像
 	 */
-					
 	private String touxiang;
-	
 	/**
 	 * 年龄
 	 */
-					
 	private Integer nianling;
-	
+
+	/**
+	 * 手机号 (新增对接前端字段)
+	 */
+	private String shouji;
 
 	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
 	@DateTimeFormat
@@ -101,81 +87,57 @@ public class ChushiEntity<T> implements Serializable {
 	public Long getId() {
 		return id;
 	}
-
 	public void setId(Long id) {
 		this.id = id;
 	}
-	/**
-	 * 设置：工号
-	 */
+
 	public void setGonghao(String gonghao) {
 		this.gonghao = gonghao;
 	}
-	/**
-	 * 获取：工号
-	 */
 	public String getGonghao() {
 		return gonghao;
 	}
-	/**
-	 * 设置：密码
-	 */
+
 	public void setMima(String mima) {
 		this.mima = mima;
 	}
-	/**
-	 * 获取：密码
-	 */
 	public String getMima() {
 		return mima;
 	}
-	/**
-	 * 设置：厨师姓名
-	 */
+
 	public void setChushixingming(String chushixingming) {
 		this.chushixingming = chushixingming;
 	}
-	/**
-	 * 获取：厨师姓名
-	 */
 	public String getChushixingming() {
 		return chushixingming;
 	}
-	/**
-	 * 设置：性别
-	 */
+
 	public void setXingbie(String xingbie) {
 		this.xingbie = xingbie;
 	}
-	/**
-	 * 获取：性别
-	 */
 	public String getXingbie() {
 		return xingbie;
 	}
-	/**
-	 * 设置：头像
-	 */
+
 	public void setTouxiang(String touxiang) {
 		this.touxiang = touxiang;
 	}
-	/**
-	 * 获取：头像
-	 */
 	public String getTouxiang() {
 		return touxiang;
 	}
-	/**
-	 * 设置：年龄
-	 */
+
 	public void setNianling(Integer nianling) {
 		this.nianling = nianling;
 	}
-	/**
-	 * 获取：年龄
-	 */
 	public Integer getNianling() {
 		return nianling;
 	}
 
+	// ====== 新增手机号的 Get/Set 方法 ======
+	public void setShouji(String shouji) {
+		this.shouji = shouji;
+	}
+	public String getShouji() {
+		return shouji;
+	}
 }
