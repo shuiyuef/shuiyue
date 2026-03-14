@@ -1,29 +1,47 @@
 import os
 
-# 需要排除的文件夹（避免把依赖包也打进去，那会撑爆 AI 的内存）
-EXCLUDE_DIRS = {'.git', 'node_modules', 'target', '.idea', '.vscode', '__pycache__', 'dist', 'build'}
-# 允许读取的文件后缀
-ALLOWED_EXTENSIONS = {'.java', '.py', '.js', '.vue', '.html', '.css', '.sql', '.xml', '.yml', '.yaml', '.properties'}
+# 要忽略的文件夹（不遍历它们）
+IGNORE_DIRS = {'node_modules', '.git', 'target', '.idea', 'dist', '__pycache__', 'shuiyue.git', 'shuiyue'}
 
-def pack_project(root_dir, output_file):
-    with open(output_file, 'w', encoding='utf-8') as f:
-        for root, dirs, files in os.walk(root_dir):
-            # 排除不需要的目录
-            dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
-            
+# 要忽略的文件后缀（二进制、图片、压缩包等）
+IGNORE_EXTS = {
+    '.jpg', '.jpeg', '.png', '.gif', '.ico', '.svg', '.webp',
+    '.jar', '.class', '.exe', '.dll', '.so',
+    '.zip', '.tar', '.gz', '.rar',
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+    '.idx', '.pack', '.rev', '.sample', '.iml'
+}
+
+OUTPUT_FILE = 'project_all_code.txt'
+
+def is_valid_file(filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return ext not in IGNORE_EXTS
+
+def pack_project():
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as outfile:
+        for root, dirs, files in os.walk('.'):
+            # 过滤不需要的目录
+            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+
             for file in files:
-                if any(file.endswith(ext) for ext in ALLOWED_EXTENSIONS):
-                    full_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(full_path, root_dir)
-                    
-                    f.write(f"\n\n--- FILE: {rel_path} ---\n")
-                    try:
-                        with open(full_path, 'r', encoding='utf-8') as code_f:
-                            f.write(code_f.read())
-                    except Exception as e:
-                        f.write(f"Error reading file: {e}")
+                # 过滤掉不需要的文件和输出文件本身、脚本本身
+                if not is_valid_file(file) or file in [OUTPUT_FILE, 'pack_code.py']:
+                    continue
+                
+                file_path = os.path.join(root, file)
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as infile:
+                        content = infile.read()
+                        
+                    outfile.write(f"\n\n{'='*20} {file_path} {'='*20}\n\n")
+                    outfile.write(content)
+                except Exception as e:
+                    # 如果遇到无法用 utf-8 读取的特殊文件，直接跳过
+                    print(f"Skipping file {file_path} due to read error: {e}")
 
-if __name__ == "__main__":
-    print("🚀 正在打包代码，请稍候...")
-    pack_project('.', 'project_all_code.txt')
-    print("✅ 打包完成！请查看目录下的 project_all_code.txt")
+    print(f"✅ 打包成功！全部代码已保存到 {OUTPUT_FILE}")
+
+if __name__ == '__main__':
+    pack_project()

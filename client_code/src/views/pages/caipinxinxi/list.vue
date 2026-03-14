@@ -30,6 +30,11 @@
                         <div class="dish-content">
                             <h3 class="dish-title">{{item.caipinmingcheng}}</h3>
                             <div class="dish-tags">
+
+                                <el-tag v-if="item.healthTag" type="success" effect="dark" size="small">
+                                    {{ item.healthTag }}
+                                 </el-tag>
+
                                 <el-tag size="small" type="warning" effect="light" round v-if="item.kouwei">{{item.kouwei}}</el-tag>
                                 <el-tag size="small" type="info" effect="plain" round v-if="item.caipinfenlei" style="margin-left: 5px;">{{item.caipinfenlei}}</el-tag>
                             </div>

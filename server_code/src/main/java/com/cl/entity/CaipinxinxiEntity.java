@@ -101,6 +101,21 @@ public class CaipinxinxiEntity<T> implements Serializable {
 	 */
 					
 	private Double price;
+
+	/**
+	 * 健康标签
+	 */
+	@TableField(value = "health_tag")
+	private String healthTag;
+
+	public String getHealthTag() {
+		return healthTag;
+	}
+
+	public void setHealthTag(String healthTag) {
+		this.healthTag = healthTag;
+	}
+
 	
 	/**
 	 * 收藏数
@@ -121,6 +136,9 @@ public class CaipinxinxiEntity<T> implements Serializable {
 	 */
 					
 	private Integer discussNumber;
+
+
+
 	
 	/**
 	 * 工号
@@ -302,5 +320,7 @@ public class CaipinxinxiEntity<T> implements Serializable {
 	public String getGonghao() {
 		return gonghao;
 	}
+
+
 
 }

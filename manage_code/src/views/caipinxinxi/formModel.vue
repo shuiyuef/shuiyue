@@ -12,6 +12,18 @@
 					</el-col>
 
 					<el-col :span="12">
+						<el-form-item label="健康标签" prop="healthTag">
+							<el-select class="list_sel" v-model="form.healthTag" placeholder="请选择健康标签" clearable :disabled="!isAdd||disabledForm.healthTag?true:false" style="width: 100%;">
+								<el-option label="低糖低脂 (适合三高)" value="低糖低脂"></el-option>
+								<el-option label="低盐清淡 (适合高血压)" value="低盐清淡"></el-option>
+								<el-option label="软烂易嚼 (适合牙口不佳)" value="软烂易嚼"></el-option>
+								<el-option label="低嘌呤 (适合痛风)" value="低嘌呤"></el-option>
+								<el-option label="营养均衡 (日常保健)" value="营养均衡"></el-option>
+							</el-select>
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
 						<el-form-item prop="caipintupian"
 									  label="菜品图片"
 						>

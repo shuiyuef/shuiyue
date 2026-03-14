@@ -20,6 +20,7 @@
 	import usersCenter from '@/views/users/center'
 	import chushiRegister from '@/views/chushi/register'
 	import chushiCenter from '@/views/chushi/center'
+	import gonggao from '@/views/gonggao/list'
 
 export const routes = [{
 		path: '/login',
@@ -126,7 +127,11 @@ export const routes = [{
 			path: '/config',
 			name: '轮播图',
 			component: config
-		}
+		},{
+            path: '/gonggao',
+            name: '公告管理',
+            component: gonggao
+        }
 		]
 	},
 	{

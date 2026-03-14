@@ -18,7 +18,7 @@
 					</div>
 				</el-form>
 				<div class="btn_view">
-					<el-button class="add_btn" type="success" @click="addClick" v-if="btnAuth('caipinxinxi','新增')">
+					<el-button class="add_btn" type="success" @click="addClick">
 						<i class="iconfont icon-xinzeng2"></i>
 						新增
 					</el-button>
@@ -42,6 +42,13 @@
                         </el-image>
                     </template>
 					<div class="title">{{item.caipinmingcheng}}</div>
+
+					<div style="text-align: center; margin-bottom: 10px;">
+                        <el-tag v-if="item.healthTag" type="success" effect="dark" size="small">
+                            {{ item.healthTag }}
+                        </el-tag>
+                    </div>
+
 					<div class="btns">
 						<el-button class="view_btn" type="info" v-if=" btnAuth('caipinxinxi','查看')" @click="infoClick(item.id)">
 							<i class="iconfont icon-sousuo3"></i>

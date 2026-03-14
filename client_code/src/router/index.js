@@ -150,7 +150,15 @@ const routes = [{
 		, {
 			path: 'ordersList',
 			component: ordersList
-		},
+		},// ... 其他现有的路由
+        {
+            path: 'gonggaoList',
+            component: () => import('../views/pages/gonggao/list.vue')
+        },
+        {
+            path: 'gonggaoDetail',
+            component: () => import('../views/pages/gonggao/detail.vue')
+        }
 		]
 	},
 	{

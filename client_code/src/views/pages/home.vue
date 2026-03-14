@@ -23,6 +23,24 @@
 			</div>
 		</div>
 
+		<div v-if="gonggaoList.length" class="gonggao-bar-modern">
+			<div class="gonggao-label">
+				<i class="el-icon-message-solid"></i> 社区广播
+			</div>
+			<el-carousel height="40px" direction="vertical" :autoplay="true" indicator-position="none" class="gonggao-carousel">
+				<el-carousel-item v-for="(item, index) in gonggaoList" :key="index">
+					<div class="gonggao-content" @click="toGonggaoDetail(item.id)">
+						<span class="gonggao-tag">【{{ item.publisher }}】</span>
+						<span class="gonggao-title">{{ item.title }}</span>
+						<span class="gonggao-time">{{ item.addtime ? item.addtime.split(' ')[0] : '' }}</span>
+					</div>
+				</el-carousel-item>
+			</el-carousel>
+			<div class="gonggao-more" @click="toGonggaoList">
+				更多公告 <i class="el-icon-arrow-right"></i>
+			</div>
+		</div>
+
 		<div class="recommend-section" v-if="recommendList && recommendList.length > 0">
 			<div class="section-header">
 				<div class="title-left">
@@ -132,16 +150,48 @@
 </template>
 
 <script setup>
-	import {
-		ref,
-		getCurrentInstance
-	} from 'vue';
-	import moment from 'moment'
-	import {
-		useRouter
-	} from 'vue-router';
+    // 1. 顶部集中所有 Import，防止重复引入
+	import { ref, getCurrentInstance, onMounted } from 'vue';
+	import moment from 'moment';
+	import { useRouter } from 'vue-router';
+	import formModel from './news/formModel';
+
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
-	const router = useRouter()
+	const router = useRouter();
+
+    // ================== 公告数据及方法 ==================
+	const gonggaoList = ref([]); // 存公告列表的坑位
+    
+    // 去后端拿公告
+    const getGonggaoList = () => {
+        context?.$http({
+            url: 'gonggao/list', // 我们后端的公告接口
+            method: 'get',
+            params: {
+                page: 1,
+                limit: 5, // 只拿最新的 5 条
+                sort: 'addtime', // 按时间排序
+                order: 'desc' // 倒序，最新的在最前面
+            }
+        }).then(res => {
+            if(res.data && res.data.data && res.data.data.list) {
+                gonggaoList.value = res.data.data.list;
+            }
+        })
+    };
+
+    // 跳转到公告详情
+    const toGonggaoDetail = (id) => {
+        router.push({
+            path: '/index/gonggaoDetail', // 前台公告详情页路径（你可根据实际路由名修改）
+            query: { id: id }
+        });
+    };
+    // 跳转到公告列表
+    const toGonggaoList = () => {
+        router.push('/index/gonggaoList'); // 前台公告列表页路径
+    };
+
 	//关于我们
 	const aboutUsDetail = ref({})
 	const getAboutUs = () => {
@@ -186,8 +236,7 @@
 			})
 		})
 	}
-	//健康资讯弹窗
-	import formModel from './news/formModel'
+
 	const newsFormModelRef = ref(null)
 	//健康资讯
 	const newsList = ref([])
@@ -226,15 +275,6 @@
 	const moreClick = (table) => {
 		router.push(`/index/${table}List`)
 	}
-	const init = () => {
-		getAboutUs()
-		getSystemInfo()
-		//菜品信息推荐
-		getcaipinxinxiRecomList()
-		//健康资讯
-		getNewsList()
-	}
-	init()
 
 // ================= 新增的金刚区和推荐区逻辑 =================
 	const recommendList = ref([])
@@ -276,9 +316,18 @@
 			}
 		}
 	}
-	// 页面初始化时调用推荐
-	getSmartRecommend();
 	// ==========================================================
+
+    // 初始化合集：只在一个地方统一下发请求，保证不冲突
+	const init = () => {
+		getAboutUs()
+		getSystemInfo()
+		getcaipinxinxiRecomList()
+		getNewsList()
+        getGonggaoList() // 触发公告获取
+        getSmartRecommend()
+	}
+	init()
 
 </script>
 
@@ -459,6 +508,64 @@
     border-radius: 8px;
     margin: 20px 0;
     display: block;
+}
+
+/* --- 优化后的公告条样式 --- */
+.gonggao-bar-modern {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #f0f2f5;
+    height: 60px;
+
+    .gonggao-label {
+        font-size: 16px;
+        font-weight: bold;
+        color: #E6A23C;
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        i { font-size: 20px; margin-right: 5px; }
+    }
+
+    .gonggao-carousel {
+        flex: 1;
+        cursor: pointer;
+        
+        .gonggao-content {
+            height: 40px;
+            line-height: 40px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #555;
+            
+            .gonggao-tag { color: #409EFF; margin-right: 10px; font-weight: bold;}
+            .gonggao-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s;}
+            .gonggao-time { color: #999; font-size: 14px; margin-left: 20px; }
+            
+            &:hover .gonggao-title { color: #E6A23C; text-decoration: underline; }
+        }
+    }
+
+    .gonggao-more {
+        margin-left: 20px;
+        font-size: 14px;
+        color: #999;
+        cursor: pointer;
+        transition: color 0.3s;
+        &:hover { color: #E6A23C; }
+    }
+}
+
+/* 公告滚动动画定义 */
+@keyframes scrollGonggao {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } // 滚动过半，实现无缝对接
 }
 
 </style>
